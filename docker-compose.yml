@@ -13,7 +13,7 @@ services:
     volumes:
       - ./:/src
     ports:
-      - "8000:8000"
+      - "${PORT}:${PORT}"
     depends_on:
       - app_db
 
@@ -26,7 +26,7 @@ services:
     volumes:
       - app_pg_data:/var/lib/postgresql/data
     ports:
-      - "5432:5432"
+      - "${POSTGRES_PORT}:${POSTGRES_PORT}"
 
   app_redis:
     container_name: app_redis
@@ -38,7 +38,7 @@ services:
       - 'redis-server'
       - '--requirepass ${REDIS_PASSWORD}'
     ports:
-      - "6379:6379"
+      - "${REDIS_PORT}:${REDIS_PORT}"
 
 volumes:
   app_pg_data:
