@@ -1,4 +1,4 @@
-from pydantic import BaseSettings
+from pydantic import BaseSettings, PostgresDsn, RedisDsn
 from app.constants import Environment
 
 
@@ -12,6 +12,10 @@ class Settings(BaseSettings):
     ENVIRONMENT: Environment = Environment.PRODUCTION
     HOST: str
     PORT: int
+
+    # Databases
+    POSTGRES_URL: PostgresDsn
+    REDIS_URL: RedisDsn
 
 
 settings = Settings()
