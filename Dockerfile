@@ -20,4 +20,4 @@ COPY . /src
 ENV PATH "$PATH:/src/scripts"
 
 
-CMD ["./scripts/start-dev-tests.sh"]
+CMD ["./scripts/start-dev.sh"]
