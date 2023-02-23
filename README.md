@@ -1,4 +1,4 @@
-# meduzzen-kc-with-merges
+# meduzzen-knowledge-control
 
 ### To run the project:
 - write `./scripts/start-dev.sh` from the project root.
