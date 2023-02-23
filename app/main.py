@@ -4,6 +4,7 @@ from pathlib import Path
 
 import uvicorn
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 
 from app.config import settings
 from app.routes import router
@@ -25,6 +26,23 @@ app = FastAPI(
     title='Knowledge Control API',
     description=description,
     version=settings.APP_VERSION,
+)
+
+
+# Allowed origins
+origins = [
+    'http://localhost:3000',
+    'https://localhost:3000',
+]
+
+
+# Middlewares
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 
