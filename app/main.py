@@ -5,10 +5,9 @@ from pathlib import Path
 import uvicorn
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from redis import asyncio as aioredis
 
 from app.config import settings
-from app.database import database
+from app.database import get_db
 from app import redis
 from app.routes import router
 
@@ -52,19 +51,16 @@ app.add_middleware(
 app.include_router(router)
 
 
-@app.on_event("startup")
+# Events
+@app.on_event('startup')
 async def startup():
-    pool = aioredis.ConnectionPool.from_url(
-        settings.REDIS_URL,
-        max_connections=10
-    )
-    redis.redis_client = aioredis.Redis(connection_pool=pool)
-    await database.connect()
+    await get_db().connect()
+    redis.redis_client = await redis.redis_connect()
 
 
-@app.on_event("shutdown")
+@app.on_event('shutdown')
 async def shutdown():
-    await database.disconnect()
+    await get_db().disconnect()
     await redis.redis_client.close()
 
 
