@@ -8,7 +8,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.config import settings
 from app.database import get_db
-from app import redis
+from app.redis import get_redis
 from app.routes import router
 
 
@@ -54,14 +54,13 @@ app.include_router(router)
 # Events
 @app.on_event('startup')
 async def startup():
+    await get_redis()
     await get_db().connect()
-    redis.redis_client = await redis.redis_connect()
 
 
 @app.on_event('shutdown')
 async def shutdown():
     await get_db().disconnect()
-    await redis.redis_client.close()
 
 
 def main():
