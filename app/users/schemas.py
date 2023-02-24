@@ -7,6 +7,7 @@ class UserBaseSchema(BaseModel):
     user_email: EmailStr | None = None
     user_name: str | None = None
     user_full_name: str | None = None
+    user_bio: str | None = None
 
 
 class UserSignInSchema(BaseModel):
