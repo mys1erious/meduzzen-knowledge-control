@@ -54,7 +54,6 @@ app.include_router(router)
 # Events
 @app.on_event('startup')
 async def startup():
-    await get_redis()
     await get_db().connect()
 
 
