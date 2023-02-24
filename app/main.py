@@ -7,6 +7,8 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.config import settings
+from app.database import get_db
+from app.redis import get_redis
 from app.routes import router
 
 
@@ -47,6 +49,18 @@ app.add_middleware(
 
 
 app.include_router(router)
+
+
+# Events
+@app.on_event('startup')
+async def startup():
+    await get_redis()
+    await get_db().connect()
+
+
+@app.on_event('shutdown')
+async def shutdown():
+    await get_db().disconnect()
 
 
 def main():
