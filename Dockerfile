@@ -19,5 +19,6 @@ RUN pip install -U pip && \
 COPY . /src
 ENV PATH "$PATH:/src/scripts"
 
+RUN chmod +x ./scripts/*
 
 CMD ["./scripts/start-dev.sh"]
