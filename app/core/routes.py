@@ -1,6 +1,5 @@
 from fastapi import APIRouter
 
-from app.logging import logger
 from app.core.schemas import HealthCheckSchema
 
 router = APIRouter(tags=['General'])
