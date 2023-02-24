@@ -8,7 +8,6 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.config import settings
 from app.database import get_db
-from app.redis import get_redis
 from app.routes import router
 
 

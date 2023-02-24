@@ -1,10 +1,6 @@
 import databases
-from sqlalchemy import MetaData
-
 from app.config import settings
 
-
-metadata = MetaData()
 
 database = databases.Database(settings.POSTGRES_URL)
 
