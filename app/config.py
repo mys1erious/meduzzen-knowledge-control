@@ -12,6 +12,8 @@ class Settings(BaseSettings):
     ENVIRONMENT: Environment = Environment.PRODUCTION
     HOST: str
     PORT: int
+    CORS_ORIGINS: list[str]
+    CORS_HEADERS: list[str]
 
     # Databases
     POSTGRES_URL: PostgresDsn

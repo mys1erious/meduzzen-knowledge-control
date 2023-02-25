@@ -8,7 +8,6 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.config import settings
 from app.database import get_db
-from app.redis import get_redis
 from app.routes import router
 
 
@@ -41,10 +40,10 @@ origins = [
 # Middlewares
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,
+    allow_origins=settings.CORS_ORIGINS,
+    allow_headers=settings.CORS_HEADERS,
     allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_methods=("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS")
 )
 
 
@@ -54,7 +53,6 @@ app.include_router(router)
 # Events
 @app.on_event('startup')
 async def startup():
-    await get_redis()
     await get_db().connect()
 
 
