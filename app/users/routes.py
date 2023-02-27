@@ -1,7 +1,9 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
+from fastapi_pagination import Page, Params
 
 from app.core.utils import response_with_result_key
 from app.core.exceptions import NotFoundHTTPException, BadRequestHTTPException
+from app.core.pagination import paginate
 
 from .services import user_service
 from .schemas import UserResponse, UserSignUpRequest, UserUpdateRequest, UserListResponse
@@ -11,10 +13,11 @@ from .constants import ExceptionDetails
 router = APIRouter(tags=['Users'], prefix='/users')
 
 
-@router.get('/', response_model=UserListResponse)
-async def get_users():
+@router.get('/', response_model=Page[UserResponse])
+async def get_users(params: Params = Depends()):
     users = await user_service.get_users()
-    return response_with_result_key(users)
+    pagination = paginate(users.users, params, items_name='users')
+    return response_with_result_key(pagination)
 
 
 @router.post('/', response_model=UserResponse)
