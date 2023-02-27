@@ -1,14 +1,21 @@
-import asyncio
 import pytest
+import asyncio
 import pytest_asyncio
 
 from typing import AsyncGenerator
-from starlette.testclient import TestClient
+
 from httpx import AsyncClient
+from starlette.testclient import TestClient
+from sqlalchemy.ext.asyncio import create_async_engine
+from sqlalchemy.pool import NullPool
 
-
-#import your app
 from app.main import app
+from app.config import settings as system_config
+from app.database import database as test_db
+from app.core.models import Base
+
+
+engine_test = create_async_engine(system_config.POSTGRES_URL_TEST, poolclass=NullPool)
 
 
 @pytest.fixture(scope="session")
@@ -22,6 +29,17 @@ def event_loop():
 def test_app():
     client = TestClient(app)
     yield client
+
+
+@pytest.fixture(autouse=True, scope='session')
+async def prepare_database():
+    await test_db.connect()
+    async with engine_test.begin() as conn:
+        await conn.run_sync(Base.metadata.create_all)
+    yield
+    await test_db.disconnect()
+    async with engine_test.begin() as conn:
+        await conn.run_sync(Base.metadata.drop_all)
 
 
 @pytest_asyncio.fixture(scope="session")
