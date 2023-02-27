@@ -144,7 +144,7 @@ async def test_update_user_not_exist(ac: AsyncClient):
 
 async def test_delete_user_one(ac: AsyncClient):
     response = await ac.delete("/users/1/")
-    assert response.status_code == 200
+    assert response.status_code == 204
 
 
 async def test_get_users_list_after_delete(ac: AsyncClient):

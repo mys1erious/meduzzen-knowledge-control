@@ -1,5 +1,7 @@
-from fastapi import APIRouter, Depends, status
-from fastapi .responses import JSONResponse
+import json
+
+from fastapi import APIRouter, Depends, status, Response
+from fastapi.responses import JSONResponse
 from fastapi_pagination import Page, Params
 
 from app.core.utils import response_with_result_key
@@ -10,7 +12,6 @@ from .services import user_service
 from .schemas import UserResponse, UserSignUpRequest, UserUpdateRequest
 from .exceptions import UserNotFoundException, EmailTakenException
 from .constants import ExceptionDetails
-
 
 router = APIRouter(tags=['Users'], prefix='/users')
 
@@ -52,9 +53,13 @@ async def update_user(user_id: int, user_data: UserUpdateRequest) -> UserRespons
         raise NotFoundHTTPException()
 
 
-@router.delete('/{user_id}/', status_code=status.HTTP_204_NO_CONTENT)
-async def delete_user(user_id: int) -> None:
+@router.delete(
+    '/{user_id}/',
+    response_class=JSONResponse,
+    status_code=status.HTTP_204_NO_CONTENT)
+async def delete_user(user_id: int):
     try:
         await user_service.delete_user(user_id=user_id)
+        return JSONResponse(content={}, status_code=status.HTTP_204_NO_CONTENT)
     except UserNotFoundException:
         raise NotFoundHTTPException()
