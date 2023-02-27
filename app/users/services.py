@@ -16,7 +16,7 @@ class UserService:
         query = select(Users)
         users = await database.fetch_all(query)
         return UserListResponse(users=[
-            serialize_user(user)
+            serialize_user(user=user)
             for user in users
         ])
 
