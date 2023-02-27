@@ -5,8 +5,10 @@ from pathlib import Path
 import uvicorn
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from starlette.middleware.base import BaseHTTPMiddleware
 
 from app.config import settings
+from app.core.middlewares import log_writes_middleware
 from app.database import get_db
 from app.routes import router
 
@@ -38,6 +40,7 @@ app.add_middleware(
     allow_credentials=True,
     allow_methods=("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS")
 )
+app.add_middleware(BaseHTTPMiddleware, dispatch=log_writes_middleware)
 
 
 app.include_router(router)
