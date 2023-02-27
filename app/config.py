@@ -18,6 +18,7 @@ class Settings(BaseSettings):
     # Databases
     POSTGRES_URL: PostgresDsn
     REDIS_URL: RedisDsn
+    POSTGRES_URL_TEST: PostgresDsn
 
 
 settings = Settings()
