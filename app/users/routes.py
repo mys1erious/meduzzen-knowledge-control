@@ -25,7 +25,7 @@ router = APIRouter(tags=['Users'], prefix='/users')
 
 
 @router.post('/token/', response_model=TokenResponse)
-async def sign_in_jwt(form_data: UserSignInRequestForm = Depends()) -> TokenResponse:
+async def sign_in_user(form_data: UserSignInRequestForm = Depends()) -> TokenResponse:
     user = await user_service.authenticate_user(
         email=form_data.user_email,
         password=form_data.user_password
