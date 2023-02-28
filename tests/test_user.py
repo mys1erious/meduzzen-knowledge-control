@@ -1,6 +1,7 @@
 from httpx import AsyncClient
 
 
+# ---- Users CRUD ----
 async def test_get_users(ac: AsyncClient):
     response = await ac.get("/users/")
     assert response.status_code == 200
@@ -151,3 +152,39 @@ async def test_get_users_list_after_delete(ac: AsyncClient):
     response = await ac.get("/users/")
     assert response.status_code == 200
     assert len(response.json().get("result").get("users")) == 2
+
+
+# ---- Users Auth ----
+tokens = {
+    "user_two": ""
+}
+
+
+async def test_login_try(ac: AsyncClient):
+    payload = {
+        "user_email": "test2@test.com",
+        "user_password": "testt",
+    }
+    response = await ac.post("/users/token/", data=payload)
+    tokens["user_two"] = response.json().get('result').get('access_token')
+    assert response.status_code == 200
+    assert response.json().get('result').get('token_type') == 'Bearer'
+
+
+async def test_auth_me(ac: AsyncClient):
+    headers = {
+        "Authorization": f"Bearer {tokens.get('user_two')}",
+    }
+    response = await ac.get("/users/me/", headers=headers)
+    assert response.status_code == 200
+    assert response.json().get('result').get('user_name') == "test2"
+    assert response.json().get('result').get('user_email') == "test2@test.com"
+    assert response.json().get('result').get('user_id') == 2
+
+
+async def test_bad_auth_me(ac: AsyncClient):
+    headers = {
+        "Authorization": f"Bearer test",
+    }
+    response = await ac.get("/users/me/", headers=headers)
+    assert response.status_code == 401
