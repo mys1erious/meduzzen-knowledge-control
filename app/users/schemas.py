@@ -1,4 +1,4 @@
-from typing import Callable
+from typing import Literal
 
 from pydantic import BaseModel, EmailStr, validator
 from .constants import ExceptionDetails
@@ -64,3 +64,25 @@ class UserUpdateRequest(BaseModel):
         "user_password_repeat",
         allow_reuse=True
     )(password_repeat_match)
+
+
+class TokenResponse(BaseModel):
+    access_token: str
+    token_type: str
+
+
+class TokenDataSchema(BaseModel):
+    user_email: EmailStr | None = None
+    type: Literal['jwt', 'auth0'] = 'jwt'
+
+
+class JwksKeySchema(BaseModel):
+    kid: str
+    kty: str
+    use: str
+    n: str
+    e: str
+
+
+class JwksSchema(BaseModel):
+    keys: list[JwksKeySchema]

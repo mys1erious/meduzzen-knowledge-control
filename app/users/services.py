@@ -1,13 +1,21 @@
+from pydantic import EmailStr
 from sqlalchemy import select, insert, update, delete
 
 from app.database import database
 from app.core.utils import exclude_none
 
 from .models import Users
-from .schemas import UserListResponse, UserResponse, UserSignUpRequest, UserUpdateRequest
-from .security import hash_password
-from .utils import serialize_user
-from .exceptions import UserNotFoundException, EmailTakenException
+from .schemas import \
+    UserListResponse, \
+    UserResponse, \
+    UserSignUpRequest, \
+    UserUpdateRequest
+from .security import hash_password, verify_password
+from .utils import serialize_user, generate_random_password, get_username_from_email
+from .exceptions import \
+    UserNotFoundException, \
+    EmailTakenException, \
+    InvalidCredentialsException
 from .constants import ExceptionDetails
 
 
@@ -27,10 +35,15 @@ class UserService:
             raise UserNotFoundException(ExceptionDetails.USER_WITH_ID_NOT_FOUND(user_id))
         return serialize_user(user)
 
+    async def get_user_by_email(self, email: str) -> UserResponse:
+        user = await self._get_db_user_by_email(email=email)
+        if user is None:
+            raise UserNotFoundException(ExceptionDetails.USER_WITH_EMAIL_NOT_FOUND(email))
+        return serialize_user(user)
+
     async def register_user(self, user_data: UserSignUpRequest) -> UserResponse:
-        query = select(Users).where(Users.email == user_data.user_email)
-        user_exists = await database.fetch_one(query) is not None
-        if user_exists:
+        user = await self._get_db_user_by_email(email=user_data.user_email)
+        if user is not None:
             raise EmailTakenException()
 
         query = insert(Users).values(
@@ -40,8 +53,7 @@ class UserService:
         ).returning(Users)
 
         user = await database.fetch_one(query)
-        user = serialize_user(user)
-        return user
+        return serialize_user(user)
 
     async def update_user(self, user_id: int, user_data: UserUpdateRequest) -> UserResponse:
         password = user_data.user_password
@@ -55,9 +67,9 @@ class UserService:
             'hashed_password': hashed_password
         })
 
-        query = update(Users)\
-            .where(Users.id == user_id)\
-            .values(**values)\
+        query = update(Users) \
+            .where(Users.id == user_id) \
+            .values(**values) \
             .returning(Users)
 
         user = await database.fetch_one(query)
@@ -72,6 +84,34 @@ class UserService:
         user = await database.fetch_one(query)
         if user is None:
             raise UserNotFoundException(ExceptionDetails.USER_WITH_ID_NOT_FOUND(user_id))
+
+    async def authenticate_user(self, email: str, password: str) -> UserResponse:
+        user = await self._get_db_user_by_email(email=email)
+        if not user:
+            raise UserNotFoundException(
+                ExceptionDetails.USER_WITH_EMAIL_NOT_FOUND(email)
+            )
+        if not verify_password(
+                plain_password=password,
+                hashed_password=user.hashed_password):
+            raise InvalidCredentialsException(ExceptionDetails.INVALID_CREDENTIALS)
+        return serialize_user(user)
+
+    async def register_user_from_3party(self, email: EmailStr) -> UserResponse:
+        password = generate_random_password()
+        username = get_username_from_email(email)
+
+        user_data = UserSignUpRequest(
+            user_email=email,
+            user_name=username,
+            user_password=password,
+            user_password_repeat=password
+        )
+        return await self.register_user(user_data)
+
+    async def _get_db_user_by_email(self, email: str) -> Users:
+        query = select(Users).where(Users.email == email)
+        return await database.fetch_one(query)
 
 
 user_service = UserService()

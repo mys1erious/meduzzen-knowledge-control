@@ -1,5 +1,17 @@
+import secrets
+
+from pydantic import EmailStr
+
 from .models import Users
 from .schemas import UserResponse
+
+
+def generate_random_password() -> str:
+    return secrets.token_urlsafe(16)
+
+
+def get_username_from_email(email: EmailStr) -> str:
+    return email.split('@')[0]
 
 
 def serialize_user(user: Users) -> UserResponse:

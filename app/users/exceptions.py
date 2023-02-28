@@ -4,3 +4,11 @@ class UserNotFoundException(Exception):
 
 class EmailTakenException(Exception):
     pass
+
+
+class InvalidCredentialsException(Exception):
+    pass
+
+
+class InvalidTokenException(Exception):
+    pass
