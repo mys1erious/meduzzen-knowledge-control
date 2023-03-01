@@ -17,3 +17,10 @@ class UnprocessableEntityHTTPException(HTTPException):
     def __init__(self, detail='Unprocessable entity'):
         self.status_code = status.HTTP_422_UNPROCESSABLE_ENTITY
         self.detail = detail
+
+
+class UnauthorizedHTTPException(HTTPException):
+    def __init__(self, detail='Unauthorized'):
+        self.status_code = status.HTTP_401_UNAUTHORIZED
+        self.detail = detail
+        self.headers = {"WWW-Authenticate": "Bearer"}

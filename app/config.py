@@ -20,5 +20,16 @@ class Settings(BaseSettings):
     REDIS_URL: RedisDsn
     POSTGRES_URL_TEST: PostgresDsn
 
+    # Auth
+    JWT_ALGORITHM: str
+    JWT_SECRET_KEY: str
+    JWT_ACCESS_TOKEN_EXPIRE_IN_SECONDS: int
+
+    AUTH0_ALGORITHMS: str
+    AUTH0_AUDIENCE: str
+    AUTH0_DOMAIN: str
+    AUTH0_ISSUER: str
+    AUTH0_RULE_NAMESPACE: str
+
 
 settings = Settings()
