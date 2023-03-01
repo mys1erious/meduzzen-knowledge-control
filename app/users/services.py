@@ -60,10 +60,7 @@ class UserService:
         hashed_password = hash_password(password) if password else Users.hashed_password
 
         values = exclude_none({
-            'email': user_data.user_email,
             'username': user_data.user_name,
-            'full_name': user_data.user_full_name,
-            'bio': user_data.user_bio,
             'hashed_password': hashed_password
         })
 

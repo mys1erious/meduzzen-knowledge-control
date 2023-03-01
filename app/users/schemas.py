@@ -48,10 +48,7 @@ class UserSignUpRequest(UserBaseSchema):
 
 
 class UserUpdateRequest(BaseModel):
-    user_email: EmailStr | None = None
     user_name: str | None = None
-    user_full_name: str | None = None
-    user_bio: str | None = None
     user_password: str | None = None
     user_password_repeat: str | None = None
 
