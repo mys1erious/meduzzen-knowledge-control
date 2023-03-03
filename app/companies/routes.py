@@ -76,14 +76,11 @@ async def update_company(
     if current_user.user_id != company.company_owner_id:
         raise ForbiddenHTTPException()
 
-    try:
-        company = await company_service.update_company(
-            company_id=company_id,
-            company_data=company_data
-        )
-        return response_with_result_key(company)
-    except CompanyNotFoundException:
-        raise NotFoundHTTPException()
+    company = await company_service.update_company(
+        company_id=company_id,
+        company_data=company_data
+    )
+    return response_with_result_key(company)
 
 
 @router.delete(
