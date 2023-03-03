@@ -8,6 +8,7 @@ from alembic import context
 from app.config import settings
 from app.core.models import Base
 from app.users.models import Users
+from app.companies.models import Companies
 
 
 # this is the Alembic Config object, which provides
