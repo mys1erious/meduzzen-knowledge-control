@@ -106,26 +106,20 @@ async def test_bad_login_try(ac: AsyncClient):
     assert response.json().get('detail') == 'Incorrect username or password'
 
 
-tokens = {
-    "user_one": "",
-    "user_two": ""
-}
-
-
-async def test_login_try(ac: AsyncClient):
+async def test_login_try(ac: AsyncClient, users_tokens):
     payload = {
         "user_email": "test2@test.com",
         "user_password": "testt",
     }
     response = await ac.post("/users/sign-in/", data=payload)
-    tokens["user_two"] = response.json().get('result').get('access_token')
+    users_tokens[payload['user_email']] = response.json().get('result').get('access_token')
     assert response.status_code == 200
     assert response.json().get('result').get('token_type') == 'Bearer'
 
 
-async def test_auth_me(ac: AsyncClient):
+async def test_auth_me(ac: AsyncClient, users_tokens):
     headers = {
-        "Authorization": f"Bearer {tokens.get('user_two')}",
+        "Authorization": f"Bearer {users_tokens.get('test2@test.com')}",
     }
     response = await ac.get("/users/me/", headers=headers)
     assert response.status_code == 200
@@ -145,9 +139,9 @@ async def test_bad_auth_me(ac: AsyncClient):
 # ---- Validation ----
 
 
-async def test_get_users_list(ac: AsyncClient):
+async def test_get_users_list(ac: AsyncClient, users_tokens):
     headers = {
-        "Authorization": f"Bearer {tokens.get('user_two')}",
+        "Authorization": f"Bearer {users_tokens.get('test2@test.com')}",
     }
     response = await ac.get("/users/", headers=headers)
     assert response.status_code == 200
@@ -159,9 +153,9 @@ async def test_get_users_list_unauth(ac: AsyncClient):
     assert response.status_code == 403
 
 
-async def test_get_user_by_id(ac: AsyncClient):
+async def test_get_user_by_id(ac: AsyncClient, users_tokens):
     headers = {
-        "Authorization": f"Bearer {tokens.get('user_two')}",
+        "Authorization": f"Bearer {users_tokens.get('test2@test.com')}",
     }
     response = await ac.get("/users/1/", headers=headers)
     assert response.status_code == 200
@@ -175,41 +169,41 @@ async def test_get_user_by_id_unauth(ac: AsyncClient):
     assert response.status_code == 403
 
 
-async def test_bad_get_user_by_id(ac: AsyncClient):
+async def test_bad_get_user_by_id(ac: AsyncClient, users_tokens):
     headers = {
-        "Authorization": f"Bearer {tokens.get('user_two')}",
+        "Authorization": f"Bearer {users_tokens.get('test2@test.com')}",
     }
     response = await ac.get("/users/4/", headers=headers)
     assert response.status_code == 404
 
 
-async def test_update_user_one_bad(ac: AsyncClient):
+async def test_update_user_one_bad(ac: AsyncClient, users_tokens):
     payload = {
       "user_name": "test1NEW",
     }
     headers = {
-        "Authorization": f"Bearer {tokens.get('user_two')}",
+        "Authorization": f"Bearer {users_tokens.get('test2@test.com')}",
     }
     response = await ac.put("/users/1/", json=payload, headers=headers)
     assert response.status_code == 403
     assert response.json().get("detail") == "It's not your account"
 
 
-async def test_update_user_one_good(ac: AsyncClient):
+async def test_update_user_one_good(ac: AsyncClient, users_tokens):
     payload = {
       "user_name": "test2NEW",
     }
     headers = {
-        "Authorization": f"Bearer {tokens.get('user_two')}",
+        "Authorization": f"Bearer {users_tokens.get('test2@test.com')}",
     }
     response = await ac.put("/users/2/", json=payload, headers=headers)
     assert response.status_code == 200
     assert response.json().get("result").get("user_id") == 2
 
 
-async def test_get_user_by_id_updates(ac: AsyncClient):
+async def test_get_user_by_id_updates(ac: AsyncClient, users_tokens):
     headers = {
-        "Authorization": f"Bearer {tokens.get('user_two')}",
+        "Authorization": f"Bearer {users_tokens.get('test2@test.com')}",
     }
     response = await ac.get("/users/2/", headers=headers)
     assert response.status_code == 200
@@ -218,38 +212,50 @@ async def test_get_user_by_id_updates(ac: AsyncClient):
     assert response.json().get("result").get("user_name") == 'test2NEW'
 
 
-async def test_delete_user_one_bad(ac: AsyncClient):
+async def test_delete_user_one_bad(ac: AsyncClient, users_tokens):
     headers = {
-        "Authorization": f"Bearer {tokens.get('user_two')}",
+        "Authorization": f"Bearer {users_tokens.get('test2@test.com')}",
     }
     response = await ac.delete("/users/1/", headers=headers)
     assert response.status_code == 403
     assert response.json().get("detail") == "It's not your account"
 
 
-async def test_delete_user_one_good(ac: AsyncClient):
+async def test_delete_user_one_good(ac: AsyncClient, users_tokens):
     headers = {
-        "Authorization": f"Bearer {tokens.get('user_two')}",
+        "Authorization": f"Bearer {users_tokens.get('test2@test.com')}",
     }
     response = await ac.delete("/users/2/", headers=headers)
     assert response.status_code == 204
 
 
-async def test_login_user_one_(ac: AsyncClient):
+async def test_login_user_one_(ac: AsyncClient, users_tokens):
     payload = {
         "user_email": "test1@test.com",
         "user_password": "testt",
     }
     response = await ac.post("/users/sign-in/", data=payload)
-    tokens["user_one"] = response.json().get('result').get('access_token')
+    users_tokens[payload['user_email']] = response.json().get('result').get('access_token')
     assert response.status_code == 200
     assert response.json().get('result').get('token_type') == 'Bearer'
 
 
-async def test_get_users_list_after_delete(ac: AsyncClient):
+async def test_get_users_list_after_delete(ac: AsyncClient, users_tokens):
     headers = {
-        "Authorization": f"Bearer {tokens.get('user_one')}",
+        "Authorization": f"Bearer {users_tokens.get('test1@test.com')}",
     }
     response = await ac.get("/users/", headers=headers)
     assert response.status_code == 200
     assert len(response.json().get("result").get("users")) == 2
+
+
+async def test_create_user_two_again(ac: AsyncClient):
+    payload = {
+      "user_password": "testt",
+      "user_password_repeat": "testt",
+      "user_email": "test2@test.com",
+      "user_name": "test2",
+    }
+    response = await ac.post("/users/sign-up/", json=payload)
+    assert response.status_code == 200
+    assert response.json().get("result").get("user_email") == "test2@test.com"
