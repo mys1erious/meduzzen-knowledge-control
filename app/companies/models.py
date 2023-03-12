@@ -12,5 +12,3 @@ class Companies(TimeStampModel, Base):
     description = Column(String, nullable=True, default='')
     visible = Column(Boolean, default=True)
     owner_id = Column(Integer, ForeignKey("users.id"), nullable=False)
-
-    owner = relationship("Users", back_populates="owned_companies")
