@@ -30,3 +30,7 @@ class ForbiddenHTTPException(HTTPException):
     def __init__(self, detail='Forbidden'):
         self.status_code = status.HTTP_403_FORBIDDEN
         self.detail = detail
+
+
+class NotFoundException(Exception):
+    pass

@@ -6,8 +6,9 @@ from fastapi_utils.cbv import cbv
 from app.core.exceptions import ForbiddenHTTPException, NotFoundHTTPException
 from app.core.utils import response_with_result_key
 from app.core.pagination import paginate
+from app.core.schemas import DetailResponse
 from app.users.dependencies import get_current_user
-from app.users.schemas import UserResponse
+from app.users.schemas import UserResponse, UserListResponse
 
 from .schemas import CompanyCreateRequest, CompanyResponse, CompanyListResponse, CompanyUpdateRequest
 from .services import company_service
@@ -81,3 +82,28 @@ class CompaniesCBV:
 
         await company_service.delete_company(company_id=company_id)
         return JSONResponse(content={}, status_code=status.HTTP_204_NO_CONTENT)
+
+    @router.get('/{company_id}/members/', response_model=UserListResponse)
+    async def get_company_members(self, company_id: int) -> UserListResponse:
+        return response_with_result_key(
+            await company_service.get_company_members(company_id=company_id)
+        )
+
+    @router.delete('/{company_id}/members/{member_id}/', response_model=DetailResponse)
+    async def kick_company_member(self, company_id: int, member_id: int) -> DetailResponse:
+        await company_service.kick_company_member(
+            current_user_id=self.current_user.user_id,
+            company_id=company_id,
+            member_id=member_id
+        )
+
+        return DetailResponse(detail='success')
+
+    @router.delete('/{company_id}/leave/', response_model=DetailResponse)
+    async def leave_company(self, company_id: int) -> DetailResponse:
+        await company_service.leave_company(
+            current_user_id=self.current_user.user_id,
+            company_id=company_id
+        )
+
+        return DetailResponse(detail='success')
