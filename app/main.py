@@ -40,7 +40,7 @@ app.add_middleware(
     allow_credentials=True,
     allow_methods=("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS")
 )
-app.add_middleware(BaseHTTPMiddleware, dispatch=log_writes_middleware)
+# app.add_middleware(BaseHTTPMiddleware, dispatch=log_writes_middleware)
 
 
 app.include_router(router)

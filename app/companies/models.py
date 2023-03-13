@@ -1,5 +1,6 @@
 from sqlalchemy import Column, Integer, String, ForeignKey, Boolean
 from sqlalchemy.orm import relationship
+from sqlalchemy_utils import ChoiceType
 
 from app.core.models import Base, TimeStampModel
 
@@ -13,4 +14,16 @@ class Companies(TimeStampModel, Base):
     visible = Column(Boolean, default=True)
     owner_id = Column(Integer, ForeignKey("users.id"), nullable=False)
 
-    owner = relationship("Users", back_populates="owned_companies")
+
+class CompanyMembers(Base):
+    __tablename__ = 'company_members'
+
+    ROLES = [
+        ('member', 'Member'),
+        ('owner', 'Owner')
+    ]
+
+    id = Column('id', Integer, primary_key=True, index=True)
+    role = Column(ChoiceType(ROLES), default='member')
+    company_id = Column(Integer, ForeignKey("companies.id"), nullable=False)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)

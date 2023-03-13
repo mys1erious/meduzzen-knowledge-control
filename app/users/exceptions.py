@@ -12,3 +12,7 @@ class InvalidCredentialsException(Exception):
 
 class InvalidTokenException(Exception):
     pass
+
+
+class UserAlreadyAMemberException(Exception):
+    pass

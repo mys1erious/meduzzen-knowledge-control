@@ -13,5 +13,3 @@ class Users(TimeStampModel, Base):
     full_name = Column(String, default='', nullable=True)
     bio = Column(String, default='', nullable=True)
     hashed_password = Column(String, nullable=False)
-
-    owned_companies = relationship("Companies", back_populates="owner")
