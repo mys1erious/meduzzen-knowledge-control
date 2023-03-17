@@ -8,11 +8,14 @@ from app.core.utils import response_with_result_key
 from app.core.pagination import paginate
 from app.core.schemas import DetailResponse
 from app.users.dependencies import get_current_user
-from app.users.schemas import UserResponse, UserListResponse
+from app.users.schemas import UserResponse, UserListResponse, AdminListResponse
+from app.users.constants import ExceptionDetails as UserExceptionDetails
+from app.users.exceptions import UserNotFoundException
 
-from .schemas import CompanyCreateRequest, CompanyResponse, CompanyListResponse, CompanyUpdateRequest
+from .schemas import CompanyCreateRequest, CompanyResponse, CompanyListResponse, CompanyUpdateRequest, AddAdminRequest
 from .services import company_service
-from .exceptions import CompanyNotFoundException
+from .exceptions import CompanyNotFoundException, NotYourCompanyException
+from .constants import ExceptionDetails
 
 
 router = APIRouter(tags=['Companies'])
@@ -107,3 +110,44 @@ class CompaniesCBV:
         )
 
         return DetailResponse(detail='success')
+
+    @router.get('/{company_id}/admins/', response_model=AdminListResponse)
+    async def get_admins(self, company_id: int) -> AdminListResponse:
+        try:
+            return response_with_result_key(
+                await company_service.get_company_admins(company_id=company_id)
+            )
+        except CompanyNotFoundException:
+            raise NotFoundHTTPException(ExceptionDetails.COMPANY_WITH_ID_NOT_FOUND(company_id))
+
+    @router.post('/{company_id}/admins/', response_model=DetailResponse)
+    async def add_admin(self, company_id: int, data: AddAdminRequest) -> DetailResponse:
+        try:
+            await company_service.add_admin(
+                user_id=data.user_id,
+                company_id=company_id,
+                current_user_id=self.current_user.user_id
+            )
+            return DetailResponse(detail='success')
+        except NotYourCompanyException:
+            raise ForbiddenHTTPException(ExceptionDetails.WRONG_COMPANY)
+        except CompanyNotFoundException:
+            raise NotFoundHTTPException(ExceptionDetails.COMPANY_WITH_ID_NOT_FOUND(company_id))
+        except UserNotFoundException:
+            raise NotFoundHTTPException(UserExceptionDetails.USER_WITH_ID_NOT_FOUND(data.user_id))
+
+    @router.delete('/{company_id}/admins/{admin_id}/', response_model=DetailResponse)
+    async def delete_admin(self, company_id: int, admin_id: int) -> DetailResponse:
+        try:
+            await company_service.kick_company_member(
+                current_user_id=self.current_user.user_id,
+                company_id=company_id,
+                member_id=admin_id
+            )
+            return DetailResponse(detail='success')
+        except UserNotFoundException:
+            raise NotFoundHTTPException(UserExceptionDetails.USER_WITH_ID_NOT_FOUND(admin_id))
+        except CompanyNotFoundException:
+            raise NotFoundHTTPException(ExceptionDetails.COMPANY_WITH_ID_NOT_FOUND(company_id))
+        except NotYourCompanyException:
+            raise ForbiddenHTTPException(ExceptionDetails.WRONG_COMPANY)
