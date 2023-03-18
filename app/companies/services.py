@@ -2,9 +2,12 @@ from sqlalchemy import insert, select, delete, update, and_
 
 from app.database import database
 from app.core.utils import exclude_none
-from app.users.schemas import UserListResponse
+from app.users.schemas import UserListResponse, UserResponse, AdminListResponse
 from app.users.models import Users
 from app.users.utils import serialize_user
+from app.users.exceptions import UserNotFoundException
+from app.users.services import user_service
+from app.users.constants import ExceptionDetails as UserExceptionDetails
 
 from .models import Companies, CompanyMembers
 from .schemas import CompanyResponse, CompanyCreateRequest, CompanyListResponse, CompanyUpdateRequest
@@ -103,8 +106,13 @@ class CompanyService:
         ])
 
     async def kick_company_member(self, company_id: int, member_id: int, current_user_id: int) -> None:
-        company = await self._get_db_company_by_id(company_id=company_id)
+        user = await user_service.get_user_by_id(user_id=member_id)
+        if not user:
+            raise UserNotFoundException(UserExceptionDetails.USER_NOT_FOUND)
 
+        company = await self._get_db_company_by_id(company_id=company_id)
+        if not company:
+            raise CompanyNotFoundException(ExceptionDetails.COMPANY_WITH_ID_NOT_FOUND(company_id))
         if company.owner_id != current_user_id:
             raise NotYourCompanyException(ExceptionDetails.WRONG_COMPANY)
 
@@ -124,6 +132,41 @@ class CompanyService:
     async def _get_db_company_by_id(self, company_id: int) -> Companies:
         query = select(Companies).where(Companies.id == company_id)
         return await database.fetch_one(query)
+
+    async def add_admin(self, user_id: int, company_id: int,  current_user_id: int) -> None:
+        company = await self._get_db_company_by_id(company_id=company_id)
+        if not company:
+            raise CompanyNotFoundException(ExceptionDetails.COMPANY_WITH_ID_NOT_FOUND(company_id))
+        if company.owner_id != current_user_id:
+            raise NotYourCompanyException(ExceptionDetails.WRONG_COMPANY)
+
+        user = await user_service.get_user_by_id(user_id=user_id)
+        if not user:
+            raise UserNotFoundException(UserExceptionDetails.USER_NOT_FOUND)
+
+        add_query = insert(CompanyMembers).values(
+            company_id=company_id,
+            user_id=user_id,
+            role='admin'
+        ).returning(CompanyMembers)
+        await database.fetch_one(add_query)
+
+    async def get_company_admins(self, company_id: int) -> AdminListResponse:
+        company = await self._get_db_company_by_id(company_id=company_id)
+        if not company:
+            raise CompanyNotFoundException(ExceptionDetails.COMPANY_WITH_ID_NOT_FOUND(company_id))
+
+        query = select(Users) \
+            .join(CompanyMembers, CompanyMembers.user_id == Users.id) \
+            .filter(and_(
+                CompanyMembers.company_id == company_id,
+                CompanyMembers.role == 'admin',
+            ))
+        admins = await database.fetch_all(query)
+        return AdminListResponse(admins=[
+            serialize_user(admin)
+            for admin in admins
+        ])
 
 
 company_service = CompanyService()

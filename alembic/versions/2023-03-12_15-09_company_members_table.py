@@ -18,6 +18,7 @@ depends_on = None
 
 ROLES = [
     ('member', 'Member'),
+    ('admin', 'Admin'),
     ('owner', 'Owner')
 ]
 

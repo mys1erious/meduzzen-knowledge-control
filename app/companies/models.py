@@ -20,6 +20,7 @@ class CompanyMembers(Base):
 
     ROLES = [
         ('member', 'Member'),
+        ('admin', 'Admin'),
         ('owner', 'Owner')
     ]
 

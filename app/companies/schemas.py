@@ -22,3 +22,7 @@ class CompanyCreateRequest(CompanyBaseSchema):
 
 class CompanyUpdateRequest(CompanyBaseSchema):
     pass
+
+
+class AddAdminRequest(BaseModel):
+    user_id: int

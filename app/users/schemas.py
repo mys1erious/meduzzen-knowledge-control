@@ -32,6 +32,10 @@ class UserListResponse(BaseModel):
     users: list[UserResponse]
 
 
+class AdminListResponse(BaseModel):
+    admins: list[UserResponse]
+
+
 class UserSignUpRequest(UserBaseSchema):
     user_password: str
     user_password_repeat: str
