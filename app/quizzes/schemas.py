@@ -1,4 +1,7 @@
-from pydantic import BaseModel, validator, constr
+from datetime import datetime
+from pydantic import BaseModel, validator, constr, root_validator
+
+from app.core.schemas import root_validator_round_floats
 
 
 # ---- Answers ----
@@ -81,3 +84,52 @@ class QuizCreateRequest(QuizBaseSchema):
 
 class QuizUpdateRequest(QuizBaseSchema):
     pass
+
+
+# ---- Attempts ----
+class AttemptBaseSchema(BaseModel):
+    quiz_id: int
+    user_id: int
+    taken_at: datetime
+
+
+class AttemptResponse(AttemptBaseSchema):
+    attempt_id: int
+    questions: int
+    correct_answers: float
+    score: float
+
+    @root_validator(pre=True)
+    def round_values(cls, values):
+        return root_validator_round_floats(values)
+
+
+class SubmitAttemptRequest(BaseModel):
+    quiz_id: int
+    question_ids: list[int]
+    answer_ids: list[list[int]]
+
+    @validator('answer_ids')
+    def validate_answer_ids(cls, v, values):
+        if len(v) != len(values.get('question_ids', [])):
+            raise ValueError('Length of answer_ids must match length of question_ids')
+        return v
+
+
+class QuizStatsResponse(BaseModel):
+    quiz_id: int = None
+    user_id: int = None
+    company_id: int = None
+    total_questions: int
+    total_correct_answers: float
+    avg_score: float
+
+    @root_validator(pre=True)
+    def round_values(cls, values):
+        return root_validator_round_floats(values)
+
+
+class QuizStatsRequest(BaseModel):
+    quiz_id: int = None
+    user_id: int = None
+    company_id: int = None

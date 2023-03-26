@@ -119,8 +119,10 @@ class UserService:
 
         return user['role'].value
 
-    async def user_company_is_admin(self, user_id: int, company_id: int):
-        # Returns True or raises an exception
+    async def user_company_has_role(self, user_id: int, company_id: int, role: str | list[str]) -> bool:
+        if isinstance(role, str):
+            role = [role]
+
         try:
             user_role = await self.get_user_company_role(
                 company_id=company_id,
@@ -128,9 +130,21 @@ class UserService:
             )
         except NotFoundException:
             raise ForbiddenException(ExceptionDetails.ACTION_NOT_ALLOWED)
-        if user_role.lower() not in ['owner', 'admin']:
+        if user_role.lower() not in role:
             raise ForbiddenException(ExceptionDetails.ACTION_NOT_ALLOWED)
         return True
+
+    async def user_company_is_admin(self, user_id: int, company_id: int) -> bool:
+        return await self.user_company_has_role(
+            user_id=user_id,
+            company_id=company_id, role=['owner', 'admin']
+        )
+
+    async def user_company_is_member(self, user_id: int, company_id: int) -> bool:
+        return await self.user_company_has_role(
+            user_id=user_id,
+            company_id=company_id, role=['owner', 'admin', 'member']
+        )
 
     async def _get_db_user_by_email(self, email: str) -> Users:
         query = select(Users).where(Users.email == email)

@@ -4,7 +4,7 @@ from pydantic import EmailStr
 from app.core.exceptions import UnauthorizedHTTPException
 
 from .constants import ExceptionDetails
-from .exceptions import InvalidCredentialsException, InvalidTokenException, UserNotFoundException
+from .exceptions import InvalidTokenException, UserNotFoundException
 from .schemas import UserResponse
 from .security import token_scheme, decode_token
 from .services import user_service
@@ -24,7 +24,7 @@ async def get_current_user(token: str = Depends(token_scheme)) -> UserResponse:
                 email=token_data.user_email
             )
 
-        raise InvalidCredentialsException(ExceptionDetails.INVALID_CREDENTIALS)
+        raise UnauthorizedHTTPException(ExceptionDetails.INVALID_CREDENTIALS)
 
 
 # I Don't think it's possible to make a pydantic model with
