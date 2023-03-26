@@ -34,7 +34,6 @@ class QuizAnswers(TimeStampModel, Base):
     content = Column(String, nullable=False)
 
 
-# TODO: Normalize
 class Attempts(TimeStampModel, Base):
     __tablename__ = 'attempts'
 
