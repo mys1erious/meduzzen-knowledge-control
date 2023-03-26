@@ -142,13 +142,6 @@ class QuizService:
             correct_answers=correct_answers
         )
 
-        # TODO: Remove
-        # total_questions, total_correct_answers = await self.get_attempt_total_values(
-        #     quiz_id=quiz_id,
-        #     questions=len(questions),
-        #     correct_answers=correct_answers
-        # )
-
         values = {
             'quiz_id': data.quiz_id,
             'user_id': current_user_id,
@@ -161,27 +154,6 @@ class QuizService:
         attempt = await database.fetch_one(insert_query)
 
         return self.serialize_attempt(attempt)
-
-    # TODO: Remove
-    # async def get_attempt_total_values(self, quiz_id: int, questions: int, correct_answers: len):
-    #     last_attempt_query = select(
-    #         Attempts.total_questions,
-    #         Attempts.total_correct_answers,
-    #     ).filter(and_(
-    #         Attempts.quiz_id == quiz_id,
-    #         Attempts.user_id == user_service
-    #     )).order_by(
-    #         desc(Attempts.created_at)
-    #     ).limit(1)
-    #     last_attempt: Attempts = await database.fetch_one(last_attempt_query)
-    #
-    #     total_questions = questions
-    #     total_correct_answers = correct_answers
-    #     if last_attempt:
-    #         total_questions += last_attempt.total_questions
-    #         total_correct_answers += last_attempt.total_correct_answers
-    #
-    #     return total_questions, total_correct_answers
 
     async def get_attempt_score(self, total_correct_answers, correct_answers: float):
         total_correct_answers = sum(total_correct_answers.values())
