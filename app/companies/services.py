@@ -2,7 +2,7 @@ from sqlalchemy import insert, select, delete, update, and_
 
 from app.database import database
 from app.core.utils import exclude_none
-from app.users.schemas import UserListResponse, UserResponse, AdminListResponse
+from app.users.schemas import UserListResponse, AdminListResponse
 from app.users.models import Users
 from app.users.utils import serialize_user
 from app.users.exceptions import UserNotFoundException

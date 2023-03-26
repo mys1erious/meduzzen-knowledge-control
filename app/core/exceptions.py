@@ -34,3 +34,7 @@ class ForbiddenHTTPException(HTTPException):
 
 class NotFoundException(Exception):
     pass
+
+
+class ForbiddenException(Exception):
+    pass

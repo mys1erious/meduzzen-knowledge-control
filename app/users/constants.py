@@ -9,3 +9,4 @@ class ExceptionDetails:
     WRONG_USER = 'It\'s not your account'
     INVALID_CREDENTIALS = "Incorrect username or password"
     USER_ALREADY_A_MEMBER = "User is already a member of the company"
+    ACTION_NOT_ALLOWED = 'You are not allowed to perform this action'

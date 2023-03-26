@@ -10,6 +10,7 @@ from app.core.models import Base
 from app.users.models import Users
 from app.companies.models import Companies, CompanyMembers
 from app.invitations.models import Invitations
+from app.quizzes.models import Quizzes, QuizQuestions, QuizAnswers
 
 
 # this is the Alembic Config object, which provides
