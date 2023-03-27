@@ -4,6 +4,7 @@ from fastapi_utils.cbv import cbv
 from app.core.utils import response_with_result_key
 from app.core.exceptions import NotFoundHTTPException, ForbiddenHTTPException, BadRequestHTTPException
 from app.core.schemas import DetailResponse
+from app.core.constants import SuccessDetails
 from app.users.dependencies import get_current_user
 from app.users.schemas import UserResponse
 from app.users.exceptions import UserNotFoundException, UserAlreadyAMemberException
@@ -15,6 +16,7 @@ from .schemas import SendInvitationRequest, InvitationResponse, SendJoinRequest,
 from .services import invitation_service, join_request_service
 from .constants import ExceptionDetails
 from .exceptions import InvitationNotFoundException, NotYourInvitationException, JoinRequestAlreadySentException
+
 
 invitations_router = APIRouter(tags=['Invitations'])
 requests_router = APIRouter(tags=['Join Requests'])
@@ -38,7 +40,7 @@ class InvitationsCBV:
         except NotYourCompanyException:
             raise ForbiddenHTTPException(CompanyExceptionDetails.WRONG_COMPANY)
 
-        return DetailResponse(detail='success')
+        return DetailResponse(detail=SuccessDetails.SUCCESS)
 
     @invitations_router.get('/my/', response_model=list[InvitationResponse])
     async def get_my_invitations(self) -> list[InvitationResponse]:
@@ -74,7 +76,7 @@ class InvitationsCBV:
         except NotYourCompanyException:
             raise ForbiddenHTTPException(CompanyExceptionDetails.WRONG_COMPANY)
 
-        return DetailResponse(detail='success')
+        return DetailResponse(detail=SuccessDetails.SUCCESS)
 
     @invitations_router.get('/{invitation_id}/accept/', response_model=DetailResponse)
     async def accept_invitation(self, invitation_id: int) -> DetailResponse:
@@ -87,7 +89,7 @@ class InvitationsCBV:
             raise NotFoundHTTPException(ExceptionDetails.INVITATION_NOT_FOUND)
         except NotYourInvitationException:
             raise ForbiddenHTTPException(ExceptionDetails.WRONG_INVITATION)
-        return DetailResponse(detail='success')
+        return DetailResponse(detail=SuccessDetails.SUCCESS)
 
     @invitations_router.get('/{invitation_id}/decline/', response_model=DetailResponse)
     async def decline_invitation(self, invitation_id: int) -> DetailResponse:
@@ -100,7 +102,7 @@ class InvitationsCBV:
             raise NotFoundHTTPException(ExceptionDetails.INVITATION_NOT_FOUND)
         except NotYourInvitationException:
             raise ForbiddenHTTPException('User does not have an invite to the company')
-        return DetailResponse(detail='success')
+        return DetailResponse(detail=SuccessDetails.SUCCESS)
 
 
 @cbv(requests_router)
@@ -122,7 +124,7 @@ class JoinRequestsCBV:
         except UserAlreadyAMemberException:
             raise BadRequestHTTPException(UserExceptionDetails.USER_ALREADY_A_MEMBER)
 
-        return DetailResponse(detail='success')
+        return DetailResponse(detail=SuccessDetails.SUCCESS)
 
     @requests_router.get('/my/', response_model=list[JoinRequestResponse])
     async def get_my_join_requests(self) -> list[JoinRequestResponse]:
@@ -158,7 +160,7 @@ class JoinRequestsCBV:
         except NotYourInvitationException:
             raise ForbiddenHTTPException(ExceptionDetails.WRONG_REQUEST)
 
-        return DetailResponse(detail='success')
+        return DetailResponse(detail=SuccessDetails.SUCCESS)
 
     @requests_router.get('/{request_id}/accept/', response_model=DetailResponse)
     async def accept_join_request(self, request_id: int) -> DetailResponse:
@@ -171,7 +173,7 @@ class JoinRequestsCBV:
             raise NotFoundHTTPException(ExceptionDetails.JOIN_REQUEST_NOT_FOUND)
         except NotYourInvitationException:
             raise ForbiddenHTTPException('Only the owner of the company can accept requests')
-        return DetailResponse(detail='success')
+        return DetailResponse(detail=SuccessDetails.SUCCESS)
 
     @requests_router.get('/{request_id}/decline/', response_model=DetailResponse)
     async def decline_join_request(self, request_id: int) -> DetailResponse:
@@ -184,4 +186,4 @@ class JoinRequestsCBV:
             raise NotFoundHTTPException(ExceptionDetails.JOIN_REQUEST_NOT_FOUND)
         except NotYourInvitationException:
             raise ForbiddenHTTPException('Only the owner of the company can decline requests')
-        return DetailResponse(detail='success')
+        return DetailResponse(detail=SuccessDetails.SUCCESS)

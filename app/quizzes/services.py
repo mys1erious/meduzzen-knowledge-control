@@ -5,7 +5,7 @@ from app.logging import file_logger
 from app.database import database
 from app.core.exceptions import NotFoundException, BadRequestException
 from app.core.utils import add_model_label, exclude_none
-from app.core.constants import ExceptionDetails
+from app.core.constants import ExceptionDetails, SuccessDetails
 from app.core.schemas import DetailResponse
 from app.users.services import user_service
 
@@ -57,7 +57,7 @@ class QuizService:
                 await database.fetch_all(create_answers_query)
         except Exception as e:
             return DetailResponse(detail=f'{e}')
-        return DetailResponse(detail='success')
+        return DetailResponse(detail=SuccessDetails.SUCCESS)
 
     async def get_quiz(self, quiz_id: int) -> QuizFullResponse:
         query = self.select_full_quiz_query().filter(
@@ -114,7 +114,7 @@ class QuizService:
                 await database.fetch_one(delete_quiz_query)
         except Exception as e:
             return DetailResponse(detail=f'{e}')
-        return DetailResponse(detail='success')
+        return DetailResponse(detail=SuccessDetails.SUCCESS)
 
     async def get_quiz_questions(self, quiz_id: int) -> list[QuestionFullResponse]:
         query = self.select_full_question_query().filter(QuizQuestions.quiz_id == quiz_id)
@@ -486,7 +486,7 @@ class QuizService:
                 await database.fetch_all(create_answers_query)
         except Exception as e:
             return DetailResponse(detail=f'{e}')
-        return DetailResponse(detail='success')
+        return DetailResponse(detail=SuccessDetails.SUCCESS)
 
     async def get_question(self, question_id: int) -> QuestionFullResponse:
         query = self.select_full_question_query().filter(
@@ -539,7 +539,7 @@ class QuizService:
                 await database.fetch_one(delete_question_query)
         except Exception as e:
             return DetailResponse(detail=f'{e}')
-        return DetailResponse(detail='success')
+        return DetailResponse(detail=SuccessDetails.SUCCESS)
 
     async def get_question_answers(self, question_id: int) -> list[AnswerResponse]:
         query = select(QuizAnswers).filter(QuizAnswers.question_id == question_id)
@@ -632,7 +632,7 @@ class QuizService:
                 await database.fetch_one(create_answers_query)
         except Exception as e:
             return DetailResponse(detail=f'{e}')
-        return DetailResponse(detail='success')
+        return DetailResponse(detail=SuccessDetails.SUCCESS)
 
     async def get_answer(self, answer_id: int) -> AnswerResponse:
         query = select(QuizAnswers).filter(
@@ -681,7 +681,7 @@ class QuizService:
             await database.fetch_one(query)
         except Exception as e:
             return DetailResponse(detail=f'{e}')
-        return DetailResponse(detail='success')
+        return DetailResponse(detail=SuccessDetails.SUCCESS)
 
     async def get_company_id_by_answer_id(self, answer_id: int):
         query = select(Quizzes.company_id).join(

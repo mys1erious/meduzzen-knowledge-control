@@ -8,6 +8,7 @@ from app.core.utils import response_with_result_key
 from app.core.exceptions import ForbiddenException, ForbiddenHTTPException, NotFoundException, NotFoundHTTPException, \
     BadRequestException, BadRequestHTTPException
 from app.core.schemas import DetailResponse
+from app.core.constants import SuccessDetails
 from app.users.dependencies import get_current_user
 from app.users.schemas import UserResponse
 from app.users.constants import ExceptionDetails as UserExceptionDetails
@@ -60,7 +61,7 @@ class QuizzesCBV:
                 current_user_id=self.current_user.user_id,
                 data=data
             )
-            if res.detail != 'success':
+            if res.detail != SuccessDetails.SUCCESS:
                 response.status_code = status.HTTP_400_BAD_REQUEST
             return res
         except ForbiddenException:
@@ -95,7 +96,7 @@ class QuizzesCBV:
                 current_user_id=self.current_user.user_id,
                 quiz_id=quiz_id
             )
-            if res.detail != 'success':
+            if res.detail != SuccessDetails.SUCCESS:
                 response.status_code = status.HTTP_400_BAD_REQUEST
                 return res
 
@@ -127,7 +128,7 @@ class QuestionsCBV:
                 current_user_id=self.current_user.user_id,
                 data=data
             )
-            if res.detail != 'success':
+            if res.detail != SuccessDetails.SUCCESS:
                 response.status_code = status.HTTP_400_BAD_REQUEST
             return res
         except NotFoundException:
@@ -164,7 +165,7 @@ class QuestionsCBV:
                 current_user_id=self.current_user.user_id,
                 question_id=question_id
             )
-            if res.detail != 'success':
+            if res.detail != SuccessDetails.SUCCESS:
                 response.status_code = status.HTTP_400_BAD_REQUEST
                 return res
 
@@ -196,7 +197,7 @@ class AnswersCBV:
                 current_user_id=self.current_user.user_id,
                 data=data
             )
-            if res.detail != 'success':
+            if res.detail != SuccessDetails.SUCCESS:
                 response.status_code = status.HTTP_400_BAD_REQUEST
             return res
         except NotFoundException:
@@ -233,7 +234,7 @@ class AnswersCBV:
                 current_user_id=self.current_user.user_id,
                 answer_id=answer_id
             )
-            if res.detail != 'success':
+            if res.detail != SuccessDetails.SUCCESS:
                 response.status_code = status.HTTP_400_BAD_REQUEST
                 return res
 
