@@ -3,11 +3,11 @@ from pydantic import EmailStr
 
 from app.core.exceptions import UnauthorizedHTTPException
 
-from .constants import ExceptionDetails
-from .exceptions import InvalidTokenException, UserNotFoundException
-from .schemas import UserResponse
-from .security import token_scheme, decode_token
-from .services import user_service
+from app.users.constants import ExceptionDetails
+from app.users.exceptions import InvalidTokenException, UserNotFoundException
+from app.users.schemas import UserResponse
+from app.users.security import token_scheme, decode_token
+from app.users.services import user_service
 
 
 async def get_current_user(token: str = Depends(token_scheme)) -> UserResponse:

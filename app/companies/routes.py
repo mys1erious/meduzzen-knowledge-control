@@ -15,10 +15,10 @@ from app.users.exceptions import UserNotFoundException
 from app.quizzes.schemas import QuizFullResponse
 from app.quizzes.services import quiz_service
 
-from .schemas import CompanyCreateRequest, CompanyResponse, CompanyListResponse, CompanyUpdateRequest, AddAdminRequest
-from .services import company_service
-from .exceptions import CompanyNotFoundException, NotYourCompanyException
-from .constants import ExceptionDetails
+from app.companies.schemas import CompanyCreateRequest, CompanyResponse, CompanyListResponse, CompanyUpdateRequest, AddAdminRequest
+from app.companies.services import company_service
+from app.companies.exceptions import CompanyNotFoundException, NotYourCompanyException
+from app.companies.constants import ExceptionDetails
 
 
 base_router = APIRouter(tags=['Companies'])

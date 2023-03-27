@@ -13,10 +13,10 @@ from app.users.dependencies import get_current_user
 from app.users.schemas import UserResponse
 from app.users.constants import ExceptionDetails as UserExceptionDetails
 
-from .schemas import QuizFullResponse, QuizCreateRequest, QuizResponse, QuizUpdateRequest, QuestionFullResponse, \
-    QuestionCreateRequest, QuestionResponse, QuestionUpdateRequest, AnswerResponse, AnswerCreateRequest, \
-    AnswerUpdateRequest, SubmitAttemptRequest, AttemptResponse
-from .services import quiz_service
+from app.quizzes.schemas import QuizFullResponse, QuizCreateRequest, QuizResponse, QuizUpdateRequest, \
+    QuestionFullResponse, QuestionCreateRequest, QuestionResponse, QuestionUpdateRequest, AnswerResponse, \
+    AnswerCreateRequest, AnswerUpdateRequest, SubmitAttemptRequest, AttemptResponse
+from app.quizzes.services import quiz_service
 
 
 quiz_router = APIRouter(tags=['Quizzes'])

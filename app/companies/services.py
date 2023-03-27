@@ -9,11 +9,11 @@ from app.users.exceptions import UserNotFoundException
 from app.users.services import user_service
 from app.users.constants import ExceptionDetails as UserExceptionDetails
 
-from .models import Companies, CompanyMembers
-from .schemas import CompanyResponse, CompanyCreateRequest, CompanyListResponse, CompanyUpdateRequest
-from .utils import serialize_company
-from .exceptions import CompanyNotFoundException, NotYourCompanyException
-from .constants import ExceptionDetails
+from app.companies.models import Companies, CompanyMembers
+from app.companies.schemas import CompanyResponse, CompanyCreateRequest, CompanyListResponse, CompanyUpdateRequest
+from app.companies.utils import serialize_company
+from app.companies.exceptions import CompanyNotFoundException, NotYourCompanyException
+from app.companies.constants import ExceptionDetails
 
 
 class CompanyService:

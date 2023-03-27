@@ -1,7 +1,7 @@
 from typing import Literal
 
 from pydantic import BaseModel, EmailStr, validator
-from .constants import ExceptionDetails
+from app.users.constants import ExceptionDetails
 
 
 def valid_password(password) -> str:

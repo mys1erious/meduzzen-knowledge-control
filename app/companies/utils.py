@@ -1,5 +1,5 @@
-from .models import Companies
-from .schemas import CompanyResponse
+from app.companies.models import Companies
+from app.companies.schemas import CompanyResponse
 
 
 def serialize_company(company: Companies) -> CompanyResponse:

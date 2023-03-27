@@ -4,16 +4,15 @@ from databases.backends.postgres import Record
 from sqlalchemy import insert, select, asc, update, delete, and_, func
 
 from app.logging import file_logger
-from app.database import database
-from app.redis import get_redis
+from app.database import database, get_redis
 from app.core.exceptions import NotFoundException, BadRequestException
 from app.core.utils import add_model_label, exclude_none
 from app.core.constants import ExceptionDetails, SuccessDetails
 from app.core.schemas import DetailResponse
 from app.users.services import user_service
 
-from .models import Quizzes, QuizQuestions, QuizAnswers, Attempts
-from .schemas import QuizResponse, QuizCreateRequest, QuestionResponse, AnswerResponse, QuizFullResponse, \
+from app.quizzes.models import Quizzes, QuizQuestions, QuizAnswers, Attempts
+from app.quizzes.schemas import QuizResponse, QuizCreateRequest, QuestionResponse, AnswerResponse, QuizFullResponse, \
     QuestionFullResponse, QuizUpdateRequest, QuestionCreateRequest, QuestionUpdateRequest, AnswerCreateRequest, \
     AnswerUpdateRequest, SubmitAttemptRequest, AttemptResponse, QuizStatsResponse, AttemptRedisSchema
 

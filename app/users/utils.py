@@ -1,9 +1,8 @@
 import secrets
-
 from pydantic import EmailStr
 
-from .models import Users
-from .schemas import UserResponse
+from app.users.models import Users
+from app.users.schemas import UserResponse
 
 
 def generate_random_password() -> str:
