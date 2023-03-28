@@ -42,6 +42,17 @@ services:
     ports:
       - "${REDIS_PORT}:${REDIS_PORT}"
 
+  app_redis_test:
+    container_name: app_redis_test
+    hostname: redis_test
+    image: redis:7.0.8-alpine
+    env_file:
+      - .env
+    command:
+      - 'redis-server'
+    ports:
+      - "${REDIS_LOCAL_PORT_TEST}:${REDIS_PORT_TEST}"
+
 volumes:
   app_pg_data:
     driver: "local"

@@ -11,7 +11,7 @@ from sqlalchemy.pool import NullPool
 
 from app.main import app
 from app.config import settings as system_config
-from app.database import database as test_db
+from app.database import database as test_db, get_redis
 from app.core.models import Base
 
 
@@ -69,3 +69,10 @@ async def login_user(ac: AsyncClient, users_tokens):
 def users_tokens():
     tokens_store = dict()
     return tokens_store
+
+
+@pytest.fixture(scope="session", autouse=True)
+async def prepare_redis():
+    conn = await get_redis()
+    yield
+    await conn.flushdb()
