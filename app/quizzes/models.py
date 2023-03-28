@@ -1,6 +1,4 @@
 from sqlalchemy import Integer, Column, String, ForeignKey, Boolean, UniqueConstraint, Float
-from sqlalchemy.orm import relationship
-
 from app.core.models import Base, TimeStampModel, UserStampModel
 
 

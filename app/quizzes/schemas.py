@@ -116,6 +116,16 @@ class SubmitAttemptRequest(BaseModel):
         return v
 
 
+class AttemptRedisSchema(BaseModel):
+    quiz_id: int
+    user_id: int
+    company_id: int
+    question_id: int
+    answer_id: int
+    correct: int
+
+
+# ---- Quiz Stats ----
 class QuizStatsResponse(BaseModel):
     quiz_id: int = None
     user_id: int = None

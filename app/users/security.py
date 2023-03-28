@@ -9,9 +9,9 @@ from pydantic import EmailStr
 
 from app.config import settings
 
-from .constants import ExceptionDetails
-from .exceptions import InvalidCredentialsException, InvalidTokenException
-from .schemas import TokenDataSchema, JwksSchema, JwksKeySchema
+from app.users.constants import ExceptionDetails
+from app.users.exceptions import InvalidCredentialsException, InvalidTokenException
+from app.users.schemas import TokenDataSchema, JwksSchema, JwksKeySchema
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 

@@ -12,10 +12,10 @@ from app.users.constants import ExceptionDetails as UserExceptionDetails
 from app.companies.exceptions import CompanyNotFoundException, NotYourCompanyException
 from app.companies.constants import ExceptionDetails as CompanyExceptionDetails
 
-from .schemas import SendInvitationRequest, InvitationResponse, SendJoinRequest, JoinRequestResponse
-from .services import invitation_service, join_request_service
-from .constants import ExceptionDetails
-from .exceptions import InvitationNotFoundException, NotYourInvitationException, JoinRequestAlreadySentException
+from app.invitations.schemas import SendInvitationRequest, InvitationResponse, SendJoinRequest, JoinRequestResponse
+from app.invitations.services import invitation_service, join_request_service
+from app.invitations.constants import ExceptionDetails
+from app.invitations.exceptions import InvitationNotFoundException, NotYourInvitationException, JoinRequestAlreadySentException
 
 
 invitations_router = APIRouter(tags=['Invitations'])

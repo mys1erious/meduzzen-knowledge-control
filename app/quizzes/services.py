@@ -1,18 +1,20 @@
+import datetime
+
 from databases.backends.postgres import Record
 from sqlalchemy import insert, select, asc, update, delete, and_, func
 
 from app.logging import file_logger
-from app.database import database
+from app.database import database, get_redis
 from app.core.exceptions import NotFoundException, BadRequestException
 from app.core.utils import add_model_label, exclude_none
 from app.core.constants import ExceptionDetails, SuccessDetails
 from app.core.schemas import DetailResponse
 from app.users.services import user_service
 
-from .models import Quizzes, QuizQuestions, QuizAnswers, Attempts
-from .schemas import QuizResponse, QuizCreateRequest, QuestionResponse, AnswerResponse, QuizFullResponse, \
+from app.quizzes.models import Quizzes, QuizQuestions, QuizAnswers, Attempts
+from app.quizzes.schemas import QuizResponse, QuizCreateRequest, QuestionResponse, AnswerResponse, QuizFullResponse, \
     QuestionFullResponse, QuizUpdateRequest, QuestionCreateRequest, QuestionUpdateRequest, AnswerCreateRequest, \
-    AnswerUpdateRequest, SubmitAttemptRequest, AttemptResponse, QuizStatsResponse
+    AnswerUpdateRequest, SubmitAttemptRequest, AttemptResponse, QuizStatsResponse, AttemptRedisSchema
 
 
 class QuizService:
@@ -153,7 +155,44 @@ class QuizService:
         insert_query = insert(Attempts).values(values).returning(Attempts)
         attempt = await database.fetch_one(insert_query)
 
+        for answer in answers:
+            await self.store_attempt_in_redis(
+                quiz_id=data.quiz_id,
+                user_id=current_user_id,
+                company_id=company_id,
+                question_id=answer.question_id,
+                answer_id=answer.id,
+                correct=1 if answer.correct else 0
+            )
+
         return self.serialize_attempt(attempt)
+
+    async def store_attempt_in_redis(
+            self,
+            quiz_id: int,
+            user_id: int,
+            company_id: int,
+            question_id: int,
+            answer_id: int,
+            correct: int
+    ) -> None:
+        redis = await get_redis()
+
+        key = f'quiz_id:{quiz_id}-user_id:{user_id}-company_id:{company_id}'
+        data = AttemptRedisSchema(
+            quiz_id=quiz_id,
+            user_id=user_id,
+            company_id=company_id,
+            question_id=question_id,
+            answer_id=answer_id,
+            correct=correct
+        ).dict()
+
+        exp = datetime.timedelta(hours=48)
+        exp_seconds = int(exp.total_seconds())
+
+        await redis.hset(key, mapping=data)
+        await redis.expire(key, exp_seconds)
 
     async def get_attempt_score(self, total_correct_answers, correct_answers: float):
         total_correct_answers = sum(total_correct_answers.values())

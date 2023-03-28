@@ -1,5 +1,5 @@
-from .models import Invitations
-from .schemas import InvitationResponse, JoinRequestResponse
+from app.invitations.models import Invitations
+from app.invitations.schemas import InvitationResponse, JoinRequestResponse
 
 
 def serialize_invitation(invitation: Invitations) -> InvitationResponse:

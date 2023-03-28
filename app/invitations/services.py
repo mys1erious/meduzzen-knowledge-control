@@ -9,11 +9,11 @@ from app.companies.constants import ExceptionDetails as CompanyExceptionDetails
 from app.companies.services import company_service
 from app.companies.models import CompanyMembers
 
-from .models import Invitations
-from .schemas import SendInvitationRequest, InvitationResponse, SendJoinRequest, JoinRequestResponse
-from .utils import serialize_invitation, serializer_join_request
-from .constants import ExceptionDetails
-from .exceptions import InvitationNotFoundException, NotYourInvitationException, JoinRequestAlreadySentException
+from app.invitations.models import Invitations
+from app.invitations.schemas import SendInvitationRequest, InvitationResponse, SendJoinRequest, JoinRequestResponse
+from app.invitations.utils import serialize_invitation, serializer_join_request
+from app.invitations.constants import ExceptionDetails
+from app.invitations.exceptions import InvitationNotFoundException, NotYourInvitationException, JoinRequestAlreadySentException
 
 
 class InvitationService:

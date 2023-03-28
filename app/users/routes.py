@@ -10,16 +10,16 @@ from app.core.exceptions import \
     UnauthorizedHTTPException, ForbiddenHTTPException
 from app.core.pagination import paginate
 
-from .services import user_service
-from .schemas import \
+from app.users.services import user_service
+from app.users.schemas import \
     UserResponse, \
     UserSignUpRequest, \
     UserUpdateRequest, \
     TokenResponse
-from .exceptions import UserNotFoundException, EmailTakenException, InvalidCredentialsException
-from .constants import ExceptionDetails
-from .dependencies import get_current_user, UserSignInRequestForm
-from .security import create_access_token
+from app.users.exceptions import UserNotFoundException, EmailTakenException, InvalidCredentialsException
+from app.users.constants import ExceptionDetails
+from app.users.dependencies import get_current_user, UserSignInRequestForm
+from app.users.security import create_access_token
 
 
 auth_router = APIRouter(tags=['Auth'])

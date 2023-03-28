@@ -1,3 +1,4 @@
+from redis import asyncio as aioredis
 import databases
 from app.config import settings
 
@@ -18,3 +19,7 @@ else:
 
 def get_db() -> databases.Database:
     return database
+
+
+async def get_redis():
+    return await aioredis.from_url(settings.REDIS_URL)

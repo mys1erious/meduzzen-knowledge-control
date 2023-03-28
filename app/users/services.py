@@ -6,19 +6,19 @@ from app.core.utils import exclude_none
 from app.core.exceptions import NotFoundException, ForbiddenException
 from app.companies.models import CompanyMembers
 
-from .models import Users
-from .schemas import \
+from app.users.models import Users
+from app.users.schemas import \
     UserListResponse, \
     UserResponse, \
     UserSignUpRequest, \
     UserUpdateRequest
-from .security import hash_password, verify_password
-from .utils import serialize_user, generate_random_password, get_username_from_email
-from .exceptions import \
+from app.users.security import hash_password, verify_password
+from app.users.utils import serialize_user, generate_random_password, get_username_from_email
+from app.users.exceptions import \
     UserNotFoundException, \
     EmailTakenException, \
     InvalidCredentialsException
-from .constants import ExceptionDetails
+from app.users.constants import ExceptionDetails
 
 
 class UserService:
