@@ -3,11 +3,8 @@ import datetime
 import json
 import csv
 import os
-from io import StringIO
 
-from fastapi import Request
 from fastapi.responses import StreamingResponse
-
 from async_generator import async_generator
 
 from app.core.exceptions import BadRequestException
