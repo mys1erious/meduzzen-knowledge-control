@@ -1,5 +1,4 @@
 from sqlalchemy import Column, Integer, String, ForeignKey, Boolean
-from sqlalchemy.orm import relationship
 from sqlalchemy_utils import ChoiceType
 
 from app.core.models import Base, TimeStampModel

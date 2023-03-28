@@ -1,4 +1,4 @@
-from sqlalchemy import Integer, Column, String, ForeignKey, Boolean, UniqueConstraint
+from sqlalchemy import Integer, Column, String, ForeignKey, Boolean, UniqueConstraint, Float
 from sqlalchemy.orm import relationship
 
 from app.core.models import Base, TimeStampModel, UserStampModel
@@ -32,3 +32,14 @@ class QuizAnswers(TimeStampModel, Base):
     question_id = Column(Integer, ForeignKey("quiz_questions.id"), nullable=False)
     correct = Column(Boolean, default=False, nullable=False)
     content = Column(String, nullable=False)
+
+
+class Attempts(TimeStampModel, Base):
+    __tablename__ = 'attempts'
+
+    id = Column('id', Integer, primary_key=True, index=True)
+    quiz_id = Column(Integer, ForeignKey("quizzes.id"), nullable=False)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    questions = Column(Integer, nullable=False)
+    correct_answers = Column(Float, nullable=False)
+    score = Column(Float, nullable=False)

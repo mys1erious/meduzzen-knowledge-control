@@ -38,3 +38,7 @@ class NotFoundException(Exception):
 
 class ForbiddenException(Exception):
     pass
+
+
+class BadRequestException(Exception):
+    pass

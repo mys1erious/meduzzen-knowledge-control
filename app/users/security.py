@@ -84,7 +84,7 @@ def get_rsa_key(token: str) -> JwksKeySchema:
 
     unverified_header = jwt.get_unverified_header(token)
     for key in jwks.keys:
-        if key.kid == unverified_header['kid']:
+        if key.kid == unverified_header.get('kid', ''):
             return key
 
     msg = 'Invalid kid header (wrong tenant or rotated public key)'

@@ -7,6 +7,7 @@ from app.core.exceptions import ForbiddenHTTPException, NotFoundHTTPException
 from app.core.utils import response_with_result_key
 from app.core.pagination import paginate
 from app.core.schemas import DetailResponse
+from app.core.constants import SuccessDetails
 from app.users.dependencies import get_current_user
 from app.users.schemas import UserResponse, UserListResponse, AdminListResponse
 from app.users.constants import ExceptionDetails as UserExceptionDetails
@@ -108,7 +109,7 @@ class CompanyActionsCBV:
             member_id=member_id
         )
 
-        return DetailResponse(detail='success')
+        return DetailResponse(detail=SuccessDetails.SUCCESS)
 
     @action_router.delete('/{company_id}/leave/', response_model=DetailResponse)
     async def leave_company(self, company_id: int) -> DetailResponse:
@@ -117,7 +118,7 @@ class CompanyActionsCBV:
             company_id=company_id
         )
 
-        return DetailResponse(detail='success')
+        return DetailResponse(detail=SuccessDetails.SUCCESS)
 
     @action_router.get('/{company_id}/admins/', response_model=AdminListResponse)
     async def get_admins(self, company_id: int) -> AdminListResponse:
@@ -136,7 +137,7 @@ class CompanyActionsCBV:
                 company_id=company_id,
                 current_user_id=self.current_user.user_id
             )
-            return DetailResponse(detail='success')
+            return DetailResponse(detail=SuccessDetails.SUCCESS)
         except NotYourCompanyException:
             raise ForbiddenHTTPException(ExceptionDetails.WRONG_COMPANY)
         except CompanyNotFoundException:
@@ -152,7 +153,7 @@ class CompanyActionsCBV:
                 company_id=company_id,
                 member_id=admin_id
             )
-            return DetailResponse(detail='success')
+            return DetailResponse(detail=SuccessDetails.SUCCESS)
         except UserNotFoundException:
             raise NotFoundHTTPException(UserExceptionDetails.USER_WITH_ID_NOT_FOUND(admin_id))
         except CompanyNotFoundException:

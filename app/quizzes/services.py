@@ -1,19 +1,18 @@
-from sqlalchemy import insert, select, asc, update, delete
+from databases.backends.postgres import Record
+from sqlalchemy import insert, select, asc, update, delete, and_, func
 
 from app.logging import file_logger
 from app.database import database
-from app.core.exceptions import ForbiddenException, NotFoundException
+from app.core.exceptions import NotFoundException, BadRequestException
 from app.core.utils import add_model_label, exclude_none
-from app.core.constants import ExceptionDetails
+from app.core.constants import ExceptionDetails, SuccessDetails
+from app.core.schemas import DetailResponse
 from app.users.services import user_service
-from app.users.schemas import UserResponse
-from app.users.constants import ExceptionDetails as UserExceptionDetails
 
-from .models import Quizzes, QuizQuestions, QuizAnswers
+from .models import Quizzes, QuizQuestions, QuizAnswers, Attempts
 from .schemas import QuizResponse, QuizCreateRequest, QuestionResponse, AnswerResponse, QuizFullResponse, \
     QuestionFullResponse, QuizUpdateRequest, QuestionCreateRequest, QuestionUpdateRequest, AnswerCreateRequest, \
-    AnswerUpdateRequest
-from ..core.schemas import DetailResponse
+    AnswerUpdateRequest, SubmitAttemptRequest, AttemptResponse, QuizStatsResponse
 
 
 class QuizService:
@@ -58,7 +57,7 @@ class QuizService:
                 await database.fetch_all(create_answers_query)
         except Exception as e:
             return DetailResponse(detail=f'{e}')
-        return DetailResponse(detail='success')
+        return DetailResponse(detail=SuccessDetails.SUCCESS)
 
     async def get_quiz(self, quiz_id: int) -> QuizFullResponse:
         query = self.select_full_quiz_query().filter(
@@ -105,7 +104,6 @@ class QuizService:
                 questions_query = select(QuizQuestions.id).where(QuizQuestions.quiz_id == quiz_id)
                 question_id_records = await database.fetch_all(questions_query)
                 question_ids = [record['id'] for record in question_id_records]
-                file_logger.info(question_ids)
 
                 delete_answers_query = delete(QuizAnswers).where(QuizAnswers.question_id.in_(question_ids))
                 delete_questions_query = delete(QuizQuestions).where(QuizQuestions.quiz_id == quiz_id)
@@ -116,7 +114,232 @@ class QuizService:
                 await database.fetch_one(delete_quiz_query)
         except Exception as e:
             return DetailResponse(detail=f'{e}')
-        return DetailResponse(detail='success')
+        return DetailResponse(detail=SuccessDetails.SUCCESS)
+
+    async def get_quiz_questions(self, quiz_id: int) -> list[QuestionFullResponse]:
+        query = self.select_full_question_query().filter(QuizQuestions.quiz_id == quiz_id)
+        question_records = await database.fetch_all(query)
+        return self.serialize_question_full_records(question_records)
+
+    async def submit_attempt(self, current_user_id: int, data: SubmitAttemptRequest) -> AttemptResponse:
+        company_id = await self.get_company_id_by_quiz_id(data.quiz_id)
+        await user_service.user_company_is_member(
+            user_id=current_user_id,
+            company_id=company_id
+        )
+
+        questions = await self.get_validated_attempt_questions(data.quiz_id, data.question_ids)
+        answers = await self.get_validated_attempt_answers(questions, data.answer_ids)
+
+        total_correct_answers = await self.get_total_correct_answers_per_question(data.question_ids)
+        correct_answers = await self.calculate_correct_answers(
+            total_correct_answers=total_correct_answers,
+            question_ids=data.question_ids,
+            answers=answers
+        )
+        score = await self.get_attempt_score(
+            total_correct_answers=total_correct_answers,
+            correct_answers=correct_answers
+        )
+
+        values = {
+            'quiz_id': data.quiz_id,
+            'user_id': current_user_id,
+            'questions': len(questions),
+            'correct_answers': correct_answers,
+            'score': score
+        }
+
+        insert_query = insert(Attempts).values(values).returning(Attempts)
+        attempt = await database.fetch_one(insert_query)
+
+        return self.serialize_attempt(attempt)
+
+    async def get_attempt_score(self, total_correct_answers, correct_answers: float):
+        total_correct_answers = sum(total_correct_answers.values())
+        score = correct_answers / total_correct_answers
+        return score
+
+    async def calculate_correct_answers(
+            self,
+            total_correct_answers,
+            question_ids:
+            list[int],
+            answers: list[QuizAnswers]
+    ) -> float:
+        correct_submitted_answers = await self.get_correct_submitted_answers_per_question(answers)
+        total_submitted_answers = await self.get_total_submitted_answers_per_question(answers)
+
+        total_score = 0
+        for question_id in question_ids:
+            correct_total = total_correct_answers[question_id]
+            total_submitted = total_submitted_answers[question_id]
+            correct_submitted = correct_submitted_answers[question_id]
+
+            submitted_dif = correct_submitted / total_submitted
+            correct_dif = correct_submitted / correct_total
+            score = submitted_dif * correct_dif
+            total_score += score
+
+        return total_score
+
+    async def get_total_answers_per_question(self, question_ids: list[int]):
+        query = select(
+            QuizAnswers.question_id,
+            func.count().label('num')
+        ).filter(
+            QuizAnswers.question_id.in_(question_ids),
+        ).group_by(QuizAnswers.question_id)
+        res = await database.fetch_all(query)
+        return {row['question_id']: row['num'] for row in res}
+
+    async def get_total_correct_answers_per_question(self, question_ids: list[int]):
+        query = select(
+            QuizAnswers.question_id,
+            func.count().label('num')
+        ).filter(
+            QuizAnswers.question_id.in_(question_ids),
+            QuizAnswers.correct == True
+        ).group_by(QuizAnswers.question_id)
+        res = await database.fetch_all(query)
+        return {row['question_id']: row['num'] for row in res}
+
+    async def get_total_submitted_answers_per_question(self, answers: list[QuizAnswers]):
+        map = {}
+        for answer in answers:
+            if answer.question_id not in map:
+                map[answer.question_id] = 1
+            else:
+                map[answer.question_id] += 1
+        return map
+
+    async def get_correct_submitted_answers_per_question(self, answers: list[QuizAnswers]):
+        map = {}
+        for answer in answers:
+            if answer.question_id not in map:
+                map[answer.question_id] = 0
+            if answer.correct:
+                map[answer.question_id] += 1
+        return map
+
+    async def get_validated_attempt_answers(
+            self,
+            questions: list[QuizQuestions],
+            answer_ids: list[list[int]]
+    ) -> list[QuizAnswers]:
+        for question_answer_ids in answer_ids:
+            if not len(question_answer_ids) > 0:
+                raise BadRequestException('You need to give at least one answer per question')
+
+        flat_answer_ids = [
+            answer_id
+            for question_answer_ids in answer_ids
+            for answer_id in question_answer_ids
+        ]
+
+        quiz_question_ids = [question.id for question in questions]
+        answers_query = select(QuizAnswers).filter(and_(
+            QuizAnswers.question_id.in_(quiz_question_ids),
+            QuizAnswers.id.in_(flat_answer_ids)
+        ))
+        answers: list[QuizAnswers] = await database.fetch_all(answers_query)
+
+        if len(answers) != len(flat_answer_ids):
+            raise BadRequestException(
+                'Some of submitted answers dont belong to its question or you have duplicated answers'
+            )
+
+        question_answer_mapping = {question.id: set() for question in questions}
+        for question, question_answer_ids in zip(questions, answer_ids):
+            for answer_id in question_answer_ids:
+                question_answer_mapping[question.id].add(answer_id)
+
+        for answer in answers:
+            if answer.id not in question_answer_mapping[answer.question_id]:
+                raise BadRequestException(
+                    'Some of submitted answers dont belong to its question'
+                )
+
+        return answers
+
+    async def get_validated_attempt_questions(self, quiz_id: int, question_ids: list[int]) -> list[QuizQuestions]:
+        questions_query = select(
+            QuizQuestions,
+        ).filter(and_(
+            QuizQuestions.quiz_id == quiz_id,
+            QuizQuestions.id.in_(question_ids)
+        ))
+        questions = await database.fetch_all(questions_query)
+
+        if len(questions) != len(question_ids):
+            raise BadRequestException(
+                'You didnt submit answers to all quiz questions or some questions dont belong to this quiz'
+            )
+
+        return questions
+
+    def serialize_attempt(self, attempt: Attempts) -> AttemptResponse:
+        return AttemptResponse(
+            attempt_id=attempt.id,
+            quiz_id=attempt.quiz_id,
+            user_id=attempt.user_id,
+            taken_at=attempt.created_at,
+            questions=attempt.questions,
+            correct_answers=attempt.correct_answers,
+            score=attempt.score
+        )
+
+    async def get_quiz_stats(
+            self,
+            current_user_id: int,
+            quiz_id: int | None,
+            user_id: int | None,
+            company_id: int | None
+    ) -> QuizStatsResponse:
+        query = select(
+            func.sum(Attempts.questions).label('total_questions'),
+            func.sum(Attempts.correct_answers).label('total_correct_answers'),
+            func.avg(Attempts.score).label('avg_score')
+        )
+
+        if quiz_id:
+            company_id = await self.get_company_id_by_quiz_id(quiz_id)
+            await user_service.user_company_is_member(current_user_id, company_id)
+
+            query = query.filter(Attempts.quiz_id == quiz_id)
+        if user_id:
+            query = query.filter(Attempts.user_id == user_id)
+        if company_id:
+            await user_service.user_company_is_member(current_user_id, company_id)
+
+            query = query.join(
+                Quizzes, Quizzes.id == Attempts.quiz_id
+            ).filter(
+                Quizzes.company_id == company_id
+            )
+
+        ids = exclude_none({
+            'quiz_id': quiz_id,
+            'user_id': user_id,
+            'company_id': company_id
+        })
+        stats = await database.fetch_one(query)
+
+        if not stats['avg_score']:
+            raise NotFoundException()
+
+        return self.serialize_quiz_stats(
+            stats=stats,
+            ids=ids
+        )
+
+    def serialize_quiz_stats(self, stats: Record, ids: dict) -> QuizStatsResponse:
+        return QuizStatsResponse(
+            **ids,
+            total_questions=stats.total_questions,
+            total_correct_answers=stats.total_correct_answers,
+            avg_score=stats.avg_score
+        )
 
     async def get_company_quizzes(self, company_id: int) -> list[QuizFullResponse]:
         query = self.select_full_quiz_query().filter(
@@ -140,7 +363,7 @@ class QuizService:
             )
         )
         if not record:
-            raise NotFoundException()
+            raise NotFoundException(ExceptionDetails.ENTITY_WITH_ID_NOT_FOUND('quiz', quiz_id))
         return record['company_id']
 
     def select_full_quiz_query(self):
@@ -233,11 +456,6 @@ class QuizService:
         question_records = await database.fetch_all(query)
         return self.serialize_question_full_records(question_records)
 
-    async def get_quiz_questions(self, quiz_id: int) -> list[QuestionFullResponse]:
-        query = self.select_full_question_query().filter(QuizQuestions.quiz_id == quiz_id)
-        question_records = await database.fetch_all(query)
-        return self.serialize_question_full_records(question_records)
-
     async def add_question(
             self,
             current_user_id: int,
@@ -268,7 +486,7 @@ class QuizService:
                 await database.fetch_all(create_answers_query)
         except Exception as e:
             return DetailResponse(detail=f'{e}')
-        return DetailResponse(detail='success')
+        return DetailResponse(detail=SuccessDetails.SUCCESS)
 
     async def get_question(self, question_id: int) -> QuestionFullResponse:
         query = self.select_full_question_query().filter(
@@ -321,7 +539,12 @@ class QuizService:
                 await database.fetch_one(delete_question_query)
         except Exception as e:
             return DetailResponse(detail=f'{e}')
-        return DetailResponse(detail='success')
+        return DetailResponse(detail=SuccessDetails.SUCCESS)
+
+    async def get_question_answers(self, question_id: int) -> list[AnswerResponse]:
+        query = select(QuizAnswers).filter(QuizAnswers.question_id == question_id)
+        answers = await database.fetch_all(query)
+        return [self.serialize_answer(answer) for answer in answers]
 
     async def get_company_id_by_question_id(self, question_id: int):
         query = select(Quizzes.company_id).join(
@@ -387,11 +610,6 @@ class QuizService:
         answers = await database.fetch_all(query)
         return [self.serialize_answer(answer) for answer in answers]
 
-    async def get_question_answers(self, question_id: int) -> list[AnswerResponse]:
-        query = select(QuizAnswers).filter(QuizAnswers.question_id == question_id)
-        answers = await database.fetch_all(query)
-        return [self.serialize_answer(answer) for answer in answers]
-
     async def add_answer(
             self,
             current_user_id: int,
@@ -414,7 +632,7 @@ class QuizService:
                 await database.fetch_one(create_answers_query)
         except Exception as e:
             return DetailResponse(detail=f'{e}')
-        return DetailResponse(detail='success')
+        return DetailResponse(detail=SuccessDetails.SUCCESS)
 
     async def get_answer(self, answer_id: int) -> AnswerResponse:
         query = select(QuizAnswers).filter(
@@ -463,7 +681,7 @@ class QuizService:
             await database.fetch_one(query)
         except Exception as e:
             return DetailResponse(detail=f'{e}')
-        return DetailResponse(detail='success')
+        return DetailResponse(detail=SuccessDetails.SUCCESS)
 
     async def get_company_id_by_answer_id(self, answer_id: int):
         query = select(Quizzes.company_id).join(
