@@ -17,8 +17,9 @@ class Settings(BaseSettings):
 
     # Databases
     POSTGRES_URL: PostgresDsn
-    REDIS_URL: RedisDsn
     POSTGRES_URL_TEST: PostgresDsn
+    REDIS_URL: RedisDsn
+    REDIS_URL_TEST: RedisDsn
 
     # Auth
     JWT_ALGORITHM: str
