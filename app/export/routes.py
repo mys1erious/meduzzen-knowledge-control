@@ -21,8 +21,8 @@ class ExportCBV:
     format: Literal['json', 'csv'] = 'json'
     filename: str = None
 
-    @router.get('/my-results/')
-    async def export_my_results(self):
+    @router.get('/my-results/', response_class=StreamingResponse)
+    async def export_my_results(self) -> StreamingResponse:
         try:
             return await export_service.export_my_results(
                 current_user_id=self.current_user.user_id,
