@@ -11,6 +11,8 @@ from app.users.dependencies import get_current_user
 from app.users.schemas import UserResponse, UserListResponse, AdminListResponse
 from app.users.constants import ExceptionDetails as UserExceptionDetails
 from app.users.exceptions import UserNotFoundException
+from app.quizzes.schemas import QuizFullResponse
+from app.quizzes.services import quiz_service
 
 from .schemas import CompanyCreateRequest, CompanyResponse, CompanyListResponse, CompanyUpdateRequest, AddAdminRequest
 from .services import company_service
@@ -18,20 +20,21 @@ from .exceptions import CompanyNotFoundException, NotYourCompanyException
 from .constants import ExceptionDetails
 
 
-router = APIRouter(tags=['Companies'])
+base_router = APIRouter(tags=['Companies'])
+action_router = APIRouter(tags=['Company Actions'])
 
 
-@cbv(router)
+@cbv(base_router)
 class CompaniesCBV:
     current_user: UserResponse = Depends(get_current_user)
 
-    @router.get('/', response_model=Page[CompanyResponse])
+    @base_router.get('/', response_model=Page[CompanyResponse])
     async def get_companies(self, params: Params = Depends()) -> CompanyListResponse:
         companies = await company_service.get_companies(user_id=self.current_user.user_id)
         pagination = paginate(companies.companies, params, items_name='companies')
         return response_with_result_key(pagination)
 
-    @router.post(
+    @base_router.post(
         '/',
         response_model=CompanyResponse,
         response_class=JSONResponse,
@@ -44,7 +47,7 @@ class CompaniesCBV:
         )
         return response_with_result_key(company, status_code=status.HTTP_201_CREATED)
 
-    @router.get('/{company_id}/', response_model=CompanyResponse)
+    @base_router.get('/{company_id}/', response_model=CompanyResponse)
     async def get_company(self, company_id: int) -> CompanyResponse:
         try:
             company = await company_service.get_company_by_id(company_id=company_id)
@@ -54,7 +57,7 @@ class CompaniesCBV:
         except CompanyNotFoundException:
             raise NotFoundHTTPException()
 
-    @router.put('/{company_id}/', response_model=CompanyResponse)
+    @base_router.put('/{company_id}/', response_model=CompanyResponse)
     async def update_company(self, company_id: int, company_data: CompanyUpdateRequest) -> CompanyResponse:
         try:
             company = await company_service.get_company_by_id(company_id=company_id)
@@ -70,7 +73,7 @@ class CompaniesCBV:
         )
         return response_with_result_key(company)
 
-    @router.delete(
+    @base_router.delete(
         '/{company_id}/',
         response_class=JSONResponse,
         status_code=status.HTTP_204_NO_CONTENT)
@@ -86,13 +89,18 @@ class CompaniesCBV:
         await company_service.delete_company(company_id=company_id)
         return JSONResponse(content={}, status_code=status.HTTP_204_NO_CONTENT)
 
-    @router.get('/{company_id}/members/', response_model=UserListResponse)
+
+@cbv(action_router)
+class CompanyActionsCBV:
+    current_user: UserResponse = Depends(get_current_user)
+
+    @action_router.get('/{company_id}/members/', response_model=UserListResponse)
     async def get_company_members(self, company_id: int) -> UserListResponse:
         return response_with_result_key(
             await company_service.get_company_members(company_id=company_id)
         )
 
-    @router.delete('/{company_id}/members/{member_id}/', response_model=DetailResponse)
+    @action_router.delete('/{company_id}/members/{member_id}/', response_model=DetailResponse)
     async def kick_company_member(self, company_id: int, member_id: int) -> DetailResponse:
         await company_service.kick_company_member(
             current_user_id=self.current_user.user_id,
@@ -102,7 +110,7 @@ class CompaniesCBV:
 
         return DetailResponse(detail='success')
 
-    @router.delete('/{company_id}/leave/', response_model=DetailResponse)
+    @action_router.delete('/{company_id}/leave/', response_model=DetailResponse)
     async def leave_company(self, company_id: int) -> DetailResponse:
         await company_service.leave_company(
             current_user_id=self.current_user.user_id,
@@ -111,7 +119,7 @@ class CompaniesCBV:
 
         return DetailResponse(detail='success')
 
-    @router.get('/{company_id}/admins/', response_model=AdminListResponse)
+    @action_router.get('/{company_id}/admins/', response_model=AdminListResponse)
     async def get_admins(self, company_id: int) -> AdminListResponse:
         try:
             return response_with_result_key(
@@ -120,7 +128,7 @@ class CompaniesCBV:
         except CompanyNotFoundException:
             raise NotFoundHTTPException(ExceptionDetails.COMPANY_WITH_ID_NOT_FOUND(company_id))
 
-    @router.post('/{company_id}/admins/', response_model=DetailResponse)
+    @action_router.post('/{company_id}/admins/', response_model=DetailResponse)
     async def add_admin(self, company_id: int, data: AddAdminRequest) -> DetailResponse:
         try:
             await company_service.add_admin(
@@ -136,7 +144,7 @@ class CompaniesCBV:
         except UserNotFoundException:
             raise NotFoundHTTPException(UserExceptionDetails.USER_WITH_ID_NOT_FOUND(data.user_id))
 
-    @router.delete('/{company_id}/admins/{admin_id}/', response_model=DetailResponse)
+    @action_router.delete('/{company_id}/admins/{admin_id}/', response_model=DetailResponse)
     async def delete_admin(self, company_id: int, admin_id: int) -> DetailResponse:
         try:
             await company_service.kick_company_member(
@@ -151,3 +159,11 @@ class CompaniesCBV:
             raise NotFoundHTTPException(ExceptionDetails.COMPANY_WITH_ID_NOT_FOUND(company_id))
         except NotYourCompanyException:
             raise ForbiddenHTTPException(ExceptionDetails.WRONG_COMPANY)
+
+    @action_router.get('/{company_id}/quizzes/', response_model=Page[QuizFullResponse])
+    async def get_quizzes(self, company_id: int, params: Params = Depends()) -> Page[QuizFullResponse]:
+        quizzes = await quiz_service.get_company_quizzes(
+            company_id=company_id
+        )
+        pagination = paginate(quizzes, params, items_name='quizzes')
+        return response_with_result_key(pagination)

@@ -1,8 +1,10 @@
 from pydantic import EmailStr
-from sqlalchemy import select, insert, update, delete
+from sqlalchemy import select, insert, update, delete, and_
 
 from app.database import database
 from app.core.utils import exclude_none
+from app.core.exceptions import NotFoundException, ForbiddenException
+from app.companies.models import CompanyMembers
 
 from .models import Users
 from .schemas import \
@@ -105,6 +107,30 @@ class UserService:
             user_password_repeat=password
         )
         return await self.register_user(user_data)
+
+    async def get_user_company_role(self, user_id: int, company_id: int) -> str:
+        query = select(CompanyMembers.role).where(and_(
+            CompanyMembers.user_id == user_id,
+            CompanyMembers.company_id == company_id
+        ))
+        user = await database.fetch_one(query)
+        if user is None:
+            raise NotFoundException('Not found')
+
+        return user['role'].value
+
+    async def user_company_is_admin(self, user_id: int, company_id: int):
+        # Returns True or raises an exception
+        try:
+            user_role = await self.get_user_company_role(
+                company_id=company_id,
+                user_id=user_id
+            )
+        except NotFoundException:
+            raise ForbiddenException(ExceptionDetails.ACTION_NOT_ALLOWED)
+        if user_role.lower() not in ['owner', 'admin']:
+            raise ForbiddenException(ExceptionDetails.ACTION_NOT_ALLOWED)
+        return True
 
     async def _get_db_user_by_email(self, email: str) -> Users:
         query = select(Users).where(Users.email == email)
