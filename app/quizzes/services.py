@@ -1,4 +1,5 @@
 import datetime
+import uuid
 
 from databases.backends.postgres import Record
 from sqlalchemy import insert, select, asc, update, delete, and_, func
@@ -178,7 +179,7 @@ class QuizService:
     ) -> None:
         redis = await get_redis()
 
-        key = f'quiz_id:{quiz_id}-user_id:{user_id}-company_id:{company_id}'
+        key = f'{uuid.uuid4()}-quiz_id:{quiz_id}-user_id:{user_id}-company_id:{company_id}'
         data = AttemptRedisSchema(
             quiz_id=quiz_id,
             user_id=user_id,

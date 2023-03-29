@@ -22,4 +22,7 @@ def get_db() -> databases.Database:
 
 
 async def get_redis():
-    return await aioredis.from_url(settings.REDIS_URL)
+    if settings.ENVIRONMENT.is_testing:
+        return await aioredis.from_url(settings.REDIS_URL_TEST)
+    else:
+        return await aioredis.from_url(settings.REDIS_URL)
