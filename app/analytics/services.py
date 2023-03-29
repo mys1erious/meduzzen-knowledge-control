@@ -179,7 +179,7 @@ class AnalyticsService:
 
         return response_data
 
-    async def get_members_last_attempt(self, company_id: int, current_user_id: int):
+    async def get_members_last_attempt(self, company_id: int, current_user_id: int) -> list[UserTimeResponse]:
         await user_service.user_company_is_admin(
             user_id=current_user_id,
             company_id=company_id
