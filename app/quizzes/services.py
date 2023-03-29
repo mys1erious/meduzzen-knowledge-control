@@ -1,7 +1,6 @@
 import datetime
 import uuid
 
-from databases.backends.postgres import Record
 from sqlalchemy import insert, select, asc, update, delete, and_, func
 
 from app.logging import file_logger
@@ -15,7 +14,7 @@ from app.users.services import user_service
 from app.quizzes.models import Quizzes, QuizQuestions, QuizAnswers, Attempts
 from app.quizzes.schemas import QuizResponse, QuizCreateRequest, QuestionResponse, AnswerResponse, QuizFullResponse, \
     QuestionFullResponse, QuizUpdateRequest, QuestionCreateRequest, QuestionUpdateRequest, AnswerCreateRequest, \
-    AnswerUpdateRequest, SubmitAttemptRequest, AttemptResponse, QuizStatsResponse, AttemptRedisSchema
+    AnswerUpdateRequest, SubmitAttemptRequest, AttemptResponse, AttemptRedisSchema
 
 
 class QuizService:
@@ -327,58 +326,6 @@ class QuizService:
             questions=attempt.questions,
             correct_answers=attempt.correct_answers,
             score=attempt.score
-        )
-
-    async def get_quiz_stats(
-            self,
-            current_user_id: int,
-            quiz_id: int | None,
-            user_id: int | None,
-            company_id: int | None
-    ) -> QuizStatsResponse:
-        query = select(
-            func.sum(Attempts.questions).label('total_questions'),
-            func.sum(Attempts.correct_answers).label('total_correct_answers'),
-            func.avg(Attempts.score).label('avg_score')
-        )
-
-        if quiz_id:
-            company_id = await self.get_company_id_by_quiz_id(quiz_id)
-            await user_service.user_company_is_member(current_user_id, company_id)
-
-            query = query.filter(Attempts.quiz_id == quiz_id)
-        if user_id:
-            query = query.filter(Attempts.user_id == user_id)
-        if company_id:
-            await user_service.user_company_is_member(current_user_id, company_id)
-
-            query = query.join(
-                Quizzes, Quizzes.id == Attempts.quiz_id
-            ).filter(
-                Quizzes.company_id == company_id
-            )
-
-        ids = exclude_none({
-            'quiz_id': quiz_id,
-            'user_id': user_id,
-            'company_id': company_id
-        })
-        stats = await database.fetch_one(query)
-
-        if not stats['avg_score']:
-            raise NotFoundException()
-
-        return self.serialize_quiz_stats(
-            stats=stats,
-            ids=ids
-        )
-
-    def serialize_quiz_stats(self, stats: Record, ids: dict) -> QuizStatsResponse:
-        return QuizStatsResponse(
-            **ids,
-            total_questions=stats.total_questions,
-            total_correct_answers=stats.total_correct_answers,
-            avg_score=stats.avg_score
         )
 
     async def get_company_quizzes(self, company_id: int) -> list[QuizFullResponse]:
