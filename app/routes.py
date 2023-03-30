@@ -9,6 +9,7 @@ from app.invitations.routes import invitations_router, requests_router
 from app.quizzes.routes import quiz_router, question_router, answer_router, attempt_router
 from app.analytics.routes import router as analytics_router
 from app.export.routes import router as export_router
+from app.notifications.routes import router as notification_router
 
 
 router = APIRouter()
@@ -32,3 +33,5 @@ router.include_router(attempt_router, prefix='/attempts')
 router.include_router(analytics_router, prefix='/analytics')
 
 router.include_router(export_router, prefix='/export')
+
+router.include_router(notification_router, prefix='/notifications')

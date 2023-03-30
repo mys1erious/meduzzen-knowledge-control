@@ -3,12 +3,15 @@ import uuid
 
 from sqlalchemy import insert, select, asc, update, delete, and_, func
 
+from app.companies.models import CompanyMembers
 from app.logging import file_logger
 from app.database import database, get_redis
 from app.core.exceptions import NotFoundException, BadRequestException
 from app.core.utils import add_model_label, exclude_none
 from app.core.constants import ExceptionDetails, SuccessDetails
 from app.core.schemas import DetailResponse
+from app.notifications.schemas import NotificationRequest
+from app.notifications.services import notification_service
 from app.users.services import user_service
 
 from app.quizzes.models import Quizzes, QuizQuestions, QuizAnswers, Attempts
@@ -57,8 +60,15 @@ class QuizService:
                 ]
                 create_answers_query = insert(QuizAnswers).values(answer_values)
                 await database.fetch_all(create_answers_query)
+
+                await notification_service.on_quiz_create_send_notification_to_all_company_members(
+                    quiz_id=quiz.id,
+                    company_id=quiz.company_id,
+                    current_user_id=current_user_id
+                )
         except Exception as e:
             return DetailResponse(detail=f'{e}')
+
         return DetailResponse(detail=SuccessDetails.SUCCESS)
 
     async def get_quiz(self, quiz_id: int) -> QuizFullResponse:
