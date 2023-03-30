@@ -6,9 +6,11 @@ from app.core.exceptions import ForbiddenException, NotFoundException
 from app.core.schemas import DetailResponse
 from app.database import database
 from app.logging import file_logger
-from app.notifications.constants import Statuses, ON_QUIZ_CREATED_TEXT
+from app.notifications.constants import Statuses, ON_QUIZ_CREATED_TEXT, ON_ATTEMPT_OUTDATED_TEXT
 from app.notifications.models import Notifications
-from app.notifications.schemas import NotificationResponse, NotificationRequest
+from app.notifications.schemas import NotificationResponse
+from app.quizzes.schemas import AttemptBaseSchema
+from app.users.services import user_service
 
 
 class NotificationService:
@@ -46,18 +48,46 @@ class NotificationService:
                 'updated_by': current_user_id
             })
 
-        query = insert(Notifications).values(
-            values
-        ).returning(Notifications)
-        notification = await database.fetch_all(query)
+        notifications = await self.insert_notifications(values)
 
-        if not notification:
+        if not notifications:
             file_logger.error(f'send_notification_on_quiz_create error --> values: {values}')
 
         return DetailResponse(
-            detail=SuccessDetails.SUCCESS if notification
+            detail=SuccessDetails.SUCCESS if notifications
             else ExceptionDetails.SOMETHING_WENT_WRONG
         )
+
+    async def on_attempts_outdate_send_notification_to_all_users(
+            self,
+            outdated_attempts: list[AttemptBaseSchema]
+    ) -> DetailResponse:
+        app_admin_user = await user_service.get_app_admin()
+
+        values = []
+        for attempt in outdated_attempts:
+            values.append({
+                'status': Statuses.SENT,
+                'text': ON_ATTEMPT_OUTDATED_TEXT(attempt.quiz_id),
+                'to_user_id': attempt.user_id,
+                'created_by': app_admin_user.user_id,
+                'updated_by': app_admin_user.user_id,
+            })
+        notifications = await self.insert_notifications(values)
+
+        if not notifications:
+            file_logger.error(f'on_attempts_outdate_send_notification_to_all_users error --> values: {values}')
+
+        return DetailResponse(
+            detail=SuccessDetails.SUCCESS if notifications
+            else ExceptionDetails.SOMETHING_WENT_WRONG
+        )
+
+    async def insert_notifications(self, values: list):
+        query = insert(Notifications).values(
+            values
+        ).returning(Notifications)
+        return await database.fetch_all(query)
 
     async def get_notification(self, current_user_id: int, notification_id: int) -> NotificationResponse:
         select_query = select(

@@ -1,6 +1,7 @@
 from pydantic import EmailStr
 from sqlalchemy import select, insert, update, delete, and_
 
+from app.config import settings
 from app.database import database
 from app.core.utils import exclude_none
 from app.core.exceptions import NotFoundException, ForbiddenException
@@ -145,6 +146,10 @@ class UserService:
             user_id=user_id,
             company_id=company_id, role=['owner', 'admin', 'member']
         )
+
+    async def get_app_admin(self) -> UserResponse:
+        user = await self._get_db_user_by_email(settings.ADMIN_EMAIL)
+        return serialize_user(user)
 
     async def _get_db_user_by_email(self, email: str) -> Users:
         query = select(Users).where(Users.email == email)

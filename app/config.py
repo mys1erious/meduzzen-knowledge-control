@@ -1,4 +1,4 @@
-from pydantic import BaseSettings, PostgresDsn, RedisDsn
+from pydantic import BaseSettings, PostgresDsn, RedisDsn, EmailStr
 from app.constants import Environment
 
 
@@ -14,6 +14,7 @@ class Settings(BaseSettings):
     PORT: int
     CORS_ORIGINS: list[str]
     CORS_HEADERS: list[str]
+    ADMIN_EMAIL: EmailStr
 
     # Databases
     POSTGRES_URL: PostgresDsn

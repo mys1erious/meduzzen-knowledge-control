@@ -17,7 +17,7 @@ from app.users.services import user_service
 from app.quizzes.models import Quizzes, QuizQuestions, QuizAnswers, Attempts
 from app.quizzes.schemas import QuizResponse, QuizCreateRequest, QuestionResponse, AnswerResponse, QuizFullResponse, \
     QuestionFullResponse, QuizUpdateRequest, QuestionCreateRequest, QuestionUpdateRequest, AnswerCreateRequest, \
-    AnswerUpdateRequest, SubmitAttemptRequest, AttemptResponse, AttemptRedisSchema
+    AnswerUpdateRequest, SubmitAttemptRequest, AttemptResponse, AttemptRedisSchema, AttemptBaseSchema
 
 
 class QuizService:
@@ -679,6 +679,32 @@ class QuizService:
         except Exception as e:
             return DetailResponse(detail=f'{e}')
         return DetailResponse(detail=SuccessDetails.SUCCESS)
+
+    async def get_all_outdated_attempts(self) -> list[AttemptBaseSchema]:
+        latest_attempts_query = select(
+            Attempts.quiz_id,
+            Attempts.user_id,
+            func.max(Attempts.created_at).label('latest_attempt_date'),
+            Quizzes.frequency
+        ).join(
+            Quizzes, Quizzes.id == Attempts.quiz_id
+        ).group_by(
+            Attempts.user_id,
+            Attempts.quiz_id,
+            Quizzes.frequency
+        )
+        latest_attempts = await database.fetch_all(latest_attempts_query)
+
+        outdated_attempts = []
+        for attempt in latest_attempts:
+            days_dif = (datetime.datetime.now(datetime.timezone.utc) - attempt.latest_attempt_date).days
+            if days_dif > attempt.frequency:
+                outdated_attempts.append(AttemptBaseSchema(
+                    quiz_id=attempt.quiz_id,
+                    user_id=attempt.user_id,
+                    taken_at=attempt.latest_attempt_date
+                ))
+        return outdated_attempts
 
     async def get_company_id_by_answer_id(self, answer_id: int):
         query = select(Quizzes.company_id).join(
