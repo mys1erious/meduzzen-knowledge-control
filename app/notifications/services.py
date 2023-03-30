@@ -62,6 +62,9 @@ class NotificationService:
             self,
             outdated_attempts: list[AttemptBaseSchema]
     ) -> DetailResponse:
+        if not outdated_attempts:
+            return DetailResponse(detail=SuccessDetails.SUCCESS)
+
         app_admin_user = await user_service.get_app_admin()
 
         values = []
