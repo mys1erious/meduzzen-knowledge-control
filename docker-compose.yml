@@ -51,7 +51,7 @@ services:
     command:
       - 'redis-server'
     ports:
-      - "${REDIS_LOCAL_PORT_TEST}:${REDIS_PORT_TEST}"
+      - "${REDIS_PORT_TEST}:${REDIS_PORT}"
 
 volumes:
   app_pg_data:

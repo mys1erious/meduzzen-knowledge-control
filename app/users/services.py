@@ -114,7 +114,7 @@ class UserService:
             CompanyMembers.company_id == company_id
         ))
         user = await database.fetch_one(query)
-        if user is None:
+        if not user or not getattr(user, 'role'):
             raise NotFoundException('Not found')
 
         return user['role'].value

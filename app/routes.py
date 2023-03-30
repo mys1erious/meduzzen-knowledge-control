@@ -7,7 +7,7 @@ from app.companies.routes import \
     action_router as company_action_router
 from app.invitations.routes import invitations_router, requests_router
 from app.quizzes.routes import quiz_router, question_router, answer_router, attempt_router
-from app.stats.routes import router as stats_router
+from app.analytics.routes import router as analytics_router
 from app.export.routes import router as export_router
 
 
@@ -29,6 +29,6 @@ router.include_router(question_router, prefix='/questions')
 router.include_router(answer_router, prefix='/answers')
 router.include_router(attempt_router, prefix='/attempts')
 
-router.include_router(stats_router, prefix='/stats')
+router.include_router(analytics_router, prefix='/analytics')
 
 router.include_router(export_router, prefix='/export')

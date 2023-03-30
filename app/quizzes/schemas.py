@@ -123,23 +123,3 @@ class AttemptRedisSchema(BaseModel):
     question_id: int
     answer_id: int
     correct: int
-
-
-# ---- Quiz Stats ----
-class QuizStatsResponse(BaseModel):
-    quiz_id: int = None
-    user_id: int = None
-    company_id: int = None
-    total_questions: int
-    total_correct_answers: float
-    avg_score: float
-
-    @root_validator(pre=True)
-    def round_values(cls, values):
-        return root_validator_round_floats(values)
-
-
-class QuizStatsRequest(BaseModel):
-    quiz_id: int = None
-    user_id: int = None
-    company_id: int = None

@@ -227,7 +227,7 @@ async def test_bad_get_company_avg_score__not_member(ac: AsyncClient, users_toke
     headers = {
         "Authorization": f"Bearer {users_tokens['test2@test.com']}",
     }
-    response = await ac.get("/stats/avg-score/?company_id=1", headers=headers)
+    response = await ac.get("/analytics/avg-score/?company_id=1", headers=headers)
     assert response.status_code == 403
 
 
@@ -235,7 +235,7 @@ async def test_bad_get_company_avg_score__forbidden(ac: AsyncClient, users_token
     headers = {
         "Authorization": f"Bearer {users_tokens['test1@test.com']}",
     }
-    response = await ac.get("/stats/avg-score/?company_id=100", headers=headers)
+    response = await ac.get("/analytics/avg-score/?company_id=100", headers=headers)
     assert response.status_code == 403
 
 
@@ -243,7 +243,7 @@ async def test_get_company_one_avg_score(ac: AsyncClient, users_tokens):
     headers = {
         "Authorization": f"Bearer {users_tokens['test1@test.com']}",
     }
-    response = await ac.get("/stats/avg-score/?company_id=1", headers=headers)
+    response = await ac.get("/analytics/avg-score/?company_id=1", headers=headers)
     assert response.status_code == 200
     assert response.json().get('total_questions') == 6
     assert response.json().get('total_correct_answers') == 5
@@ -254,7 +254,7 @@ async def test_get_company_two_avg_score(ac: AsyncClient, users_tokens):
     headers = {
         "Authorization": f"Bearer {users_tokens['test2@test.com']}",
     }
-    response = await ac.get("/stats/avg-score/?company_id=2", headers=headers)
+    response = await ac.get("/analytics/avg-score/?company_id=2", headers=headers)
     assert response.status_code == 200
     assert response.json().get('total_questions') == 4
     assert response.json().get('total_correct_answers') == 3.5
@@ -265,7 +265,7 @@ async def test_bad_get_user_avg_score__not_found(ac: AsyncClient, users_tokens):
     headers = {
         "Authorization": f"Bearer {users_tokens['test1@test.com']}",
     }
-    response = await ac.get("/stats/avg-score/?user_id=100", headers=headers)
+    response = await ac.get("/analytics/avg-score/?user_id=100", headers=headers)
     assert response.status_code == 404
 
 
@@ -273,7 +273,7 @@ async def test_get_user_one_avg_score(ac: AsyncClient, users_tokens):
     headers = {
         "Authorization": f"Bearer {users_tokens['test1@test.com']}",
     }
-    response = await ac.get("/stats/avg-score/?user_id=1", headers=headers)
+    response = await ac.get("/analytics/avg-score/?user_id=1", headers=headers)
     assert response.status_code == 200
     assert response.json().get('total_questions') == 6
     assert response.json().get('total_correct_answers') == 5
@@ -284,7 +284,7 @@ async def test_get_user_two_avg_score(ac: AsyncClient, users_tokens):
     headers = {
         "Authorization": f"Bearer {users_tokens['test1@test.com']}",
     }
-    response = await ac.get("/stats/avg-score/?user_id=2", headers=headers)
+    response = await ac.get("/analytics/avg-score/?user_id=2", headers=headers)
     assert response.status_code == 200
     assert response.json().get('total_questions') == 4
     assert response.json().get('total_correct_answers') == 3.5
@@ -295,7 +295,7 @@ async def test_bad_get_quiz_avg_score__not_found(ac: AsyncClient, users_tokens):
     headers = {
         "Authorization": f"Bearer {users_tokens['test1@test.com']}",
     }
-    response = await ac.get("/stats/avg-score/?quiz_id=100", headers=headers)
+    response = await ac.get("/analytics/avg-score/?quiz_id=100", headers=headers)
     assert response.status_code == 404
 
 
@@ -303,7 +303,7 @@ async def test_get_quiz_one_avg_score(ac: AsyncClient, users_tokens):
     headers = {
         "Authorization": f"Bearer {users_tokens['test1@test.com']}",
     }
-    response = await ac.get("/stats/avg-score/?quiz_id=1", headers=headers)
+    response = await ac.get("/analytics/avg-score/?quiz_id=1", headers=headers)
     assert response.status_code == 200
     assert response.json().get('total_questions') == 6
     assert response.json().get('total_correct_answers') == 5
@@ -314,7 +314,7 @@ async def test_get_quiz_three_avg_score(ac: AsyncClient, users_tokens):
     headers = {
         "Authorization": f"Bearer {users_tokens['test2@test.com']}",
     }
-    response = await ac.get("/stats/avg-score/?quiz_id=3", headers=headers)
+    response = await ac.get("/analytics/avg-score/?quiz_id=3", headers=headers)
     assert response.status_code == 200
     assert response.json().get('total_questions') == 4
     assert response.json().get('total_correct_answers') == 3.5
@@ -325,7 +325,7 @@ async def test_get_avg_score(ac: AsyncClient, users_tokens):
     headers = {
         "Authorization": f"Bearer {users_tokens['test1@test.com']}",
     }
-    response = await ac.get("/stats/avg-score/", headers=headers)
+    response = await ac.get("/analytics/avg-score/", headers=headers)
     assert response.status_code == 200
     assert response.json().get('total_questions') == 10
     assert response.json().get('total_correct_answers') == 8.5
