@@ -11,6 +11,7 @@ from app.users.models import Users
 from app.companies.models import Companies, CompanyMembers
 from app.invitations.models import Invitations
 from app.quizzes.models import Quizzes, QuizQuestions, QuizAnswers, Attempts
+from app.notifications.models import Notifications
 
 
 # this is the Alembic Config object, which provides
