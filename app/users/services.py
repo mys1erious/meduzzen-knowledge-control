@@ -118,7 +118,7 @@ class UserService:
         if not user or not getattr(user, 'role'):
             raise NotFoundException('Not found')
 
-        return user['role'].value
+        return user.role
 
     async def user_company_has_role(self, user_id: int, company_id: int, role: str | list[str]) -> bool:
         if isinstance(role, str):
