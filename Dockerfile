@@ -21,4 +21,5 @@ ENV PATH "$PATH:/src/scripts"
 
 RUN chmod +x ./scripts/*
 
-CMD ["./scripts/start-dev.sh"]
+CMD ["./scripts/start-prod.sh"]
+#CMD ["./scripts/start-dev.sh"]
