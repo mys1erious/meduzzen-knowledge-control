@@ -1,4 +1,5 @@
 # meduzzen-knowledge-control
+Dep
 
 **All commands should be executed from the project root**.
 
