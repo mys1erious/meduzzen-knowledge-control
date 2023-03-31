@@ -1,3 +1,6 @@
+# I will rework this file later, approach with asyncio.run() doesnt work when deployed
+# ..........................
+
 import asyncio
 import datetime
 import json
@@ -27,15 +30,21 @@ MEDIA_TYPES = {
 
 
 class ExportService:
-    def __init__(self):
-        self.redis = None
-        asyncio.run(self.init_async())
-
-    async def init_async(self):
-        self.redis = await get_redis()
+    # def __init__(self):
+    #     self.redis = None
+    #     asyncio.run(self.init_async())
+    #     # try:
+    #     #     asyncio.run(self.init_async())
+    #     # except RuntimeError:
+    #     #     pass
+    #
+    # async def init_async(self):
+    #     self.redis = await get_redis()
 
     async def export_my_results(self, current_user_id: int, format: str, filename: str = None) -> StreamingResponse:
-        data = self.redis.scan_iter(f'*user_id:{current_user_id}*')
+        # data = self.redis.scan_iter(f'*user_id:{current_user_id}*')
+        redis = await get_redis()
+        data = redis.scan_iter(f'*user_id:{current_user_id}*')
         results = await self.get_results_from_iter_data(data)
         return await export_service.export_file(
             data=results,
@@ -64,7 +73,8 @@ class ExportService:
             )
             key = f'*user_id:{user_id}-{key.replace("*", "")}*'
 
-        data = self.redis.scan_iter(key)
+        redis = await get_redis()
+        data = redis.scan_iter(key)
         results = await self.get_results_from_iter_data(data)
         return await export_service.export_file(
             data=results,
@@ -84,7 +94,8 @@ class ExportService:
             user_id=current_user_id,
             company_id=company_id
         )
-        data = self.redis.scan_iter(f'*quiz_id:{quiz_id}*')
+        redis = await get_redis()
+        data = redis.scan_iter(f'*quiz_id:{quiz_id}*')
         results = await self.get_results_from_iter_data(data)
         return await export_service.export_file(
             data=results,
@@ -146,8 +157,9 @@ class ExportService:
 
     async def get_results_from_iter_data(self, iter_data: async_generator) -> list[AttemptRedisSchema]:
         results = []
+        redis = await get_redis()
         async for key in iter_data:
-            hash_value = await self.redis.hgetall(key)
+            hash_value = await redis.hgetall(key)
             results.append(AttemptRedisSchema(**{
                 key.decode('utf-8'): json.loads(value.decode('utf-8'))
                 for key, value in hash_value.items()
