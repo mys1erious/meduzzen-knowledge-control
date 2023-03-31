@@ -51,6 +51,7 @@ jobs:
       - name: Create env file
         run: |
           echo """${{ secrets.DOT_ENV }}""" > .env
+          echo POSTGRES_URL=${{ secrets.POSTGRES_URL }} >> .env
           echo "----ENV----"
           cat .env
           echo "----ENV----"
