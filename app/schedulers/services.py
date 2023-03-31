@@ -1,5 +1,4 @@
 from datetime import datetime
-from typing import Callable
 
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 
@@ -15,7 +14,6 @@ class SchedulerService:
 
     def add_core_jobs(self):
         self.scheduler.add_job(**self.check_outdated_attempts_job())
-        # self.scheduler.add_job(**self.log_test_job())
 
     async def start(self):
         self.scheduler.start()
@@ -36,14 +34,6 @@ class SchedulerService:
             'trigger': 'interval',
             'days': 1,
             'start_date': datetime.now().replace(hour=0, minute=0, second=0),
-        }
-
-    def log_test_job(self):
-        return {
-            'func': lambda: file_logger.info(datetime.now()),
-            'trigger': 'interval',
-            'seconds': 1,
-            'start_date': datetime.now()
         }
 
 
