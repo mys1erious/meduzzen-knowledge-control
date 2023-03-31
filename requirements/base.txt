@@ -57,3 +57,5 @@ apscheduler==3.10.1
 pytz-deprecation-shim==0.1.0.post0
 tzdata==2023.3
 tzlocal==4.3
+
+pytest-mock==3.10.0
