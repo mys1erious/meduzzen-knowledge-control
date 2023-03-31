@@ -40,5 +40,6 @@ class Settings(BaseSettings):
 
 
 settings = Settings()
-settings.POSTGRES_URL = f'postgresql://{settings.POSTGRES_USER}:{settings.POSTGRES_PASSWORD}' \
+# settings.POSTGRES_URL = f'postgresql://{settings.POSTGRES_USER}:{settings.POSTGRES_PASSWORD}' \
+settings.POSTGRES_URL = f'postgresql://ubuntu' \
                         f'@{settings.POSTGRES_HOST}:{settings.POSTGRES_PORT}/{settings.POSTGRES_DB}'
