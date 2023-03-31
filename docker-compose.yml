@@ -1,0 +1,64 @@
+version: '3.8'
+
+services:
+  app:
+    container_name: app
+    image: app_image
+    env_file:
+      - .env
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: on-failure
+    volumes:
+      - ./:/src
+    ports:
+      - "${PORT}:${PORT}"
+    depends_on:
+      - app_db
+
+  app_db:
+    container_name: app_db
+    hostname: app_db
+    image: library/postgres:15.2
+    env_file:
+      - .env
+    volumes:
+      - app_pg_data:/var/lib/postgresql/data
+    ports:
+      - "${POSTGRES_PORT}:${POSTGRES_PORT}"
+
+  app_redis:
+    container_name: app_redis
+    hostname: redis
+    image: redis:7.0.8-alpine
+    env_file:
+      - .env
+    volumes:
+      - redis_data:/data
+    command:
+      - 'redis-server'
+      - '--requirepass ${REDIS_PASSWORD}'
+    ports:
+      - "${REDIS_PORT}:${REDIS_PORT}"
+
+  app_redis_test:
+    container_name: app_redis_test
+    hostname: redis_test
+    image: redis:7.0.8-alpine
+    env_file:
+      - .env
+    command:
+      - 'redis-server'
+    ports:
+      - "${REDIS_PORT_TEST}:${REDIS_PORT}"
+
+volumes:
+  app_pg_data:
+    driver: "local"
+  redis_data:
+    driver: "local"
+
+networks:
+  default:
+    name: app_main
