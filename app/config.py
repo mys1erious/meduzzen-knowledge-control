@@ -17,7 +17,12 @@ class Settings(BaseSettings):
     ADMIN_EMAIL: EmailStr
 
     # Databases
-    POSTGRES_URL: PostgresDsn
+    POSTGRES_USER: str
+    POSTGRES_PASSWORD: str
+    POSTGRES_HOST: str
+    POSTGRES_PORT: str
+    POSTGRES_DB: str
+    POSTGRES_URL: PostgresDsn = None
     POSTGRES_URL_TEST: PostgresDsn = None
     REDIS_URL: RedisDsn
     REDIS_URL_TEST: RedisDsn = None
@@ -35,3 +40,5 @@ class Settings(BaseSettings):
 
 
 settings = Settings()
+settings.POSTGRES_URL = f'postgresql://{settings.POSTGRES_USER}:{settings.POSTGRES_PASSWORD}' \
+                        f'@{settings.POSTGRES_HOST}:{settings.POSTGRES_PORT}/{settings.POSTGRES_DB}'
