@@ -1,8 +1,9 @@
 from fastapi import Depends, Form
 from pydantic import EmailStr
 
+from app.config import settings
 from app.core.exceptions import UnauthorizedHTTPException
-
+from app.core.constants import ExceptionDetails as CoreExceptionDetails
 from app.users.constants import ExceptionDetails
 from app.users.exceptions import InvalidTokenException, UserNotFoundException
 from app.users.schemas import UserResponse
@@ -25,6 +26,12 @@ async def get_current_user(token: str = Depends(token_scheme)) -> UserResponse:
             )
 
         raise UnauthorizedHTTPException(ExceptionDetails.INVALID_CREDENTIALS)
+
+
+async def get_admin_user(current_user: UserResponse = Depends(get_current_user)):
+    if current_user.user_email != settings.ADMIN_EMAIL:
+        raise UnauthorizedHTTPException(CoreExceptionDetails.NOT_ALLOWED)
+    return current_user
 
 
 # I Don't think it's possible to make a pydantic model with

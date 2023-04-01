@@ -52,3 +52,8 @@ python-multipart==0.0.6
 
 fastapi-utils==0.2.1
 SQLAlchemy-Utils==0.40.0
+
+apscheduler==3.10.1
+pytz-deprecation-shim==0.1.0.post0
+tzdata==2023.3
+tzlocal==4.3

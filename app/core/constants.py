@@ -7,3 +7,4 @@ class ExceptionDetails:
 
 class SuccessDetails:
     SUCCESS = 'success'
+    SCHEDULER_IS_RUNNING = 'Scheduler is running'

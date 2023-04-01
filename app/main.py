@@ -11,7 +11,7 @@ from app.config import settings
 from app.core.middlewares import log_writes_middleware
 from app.database import get_db
 from app.routes import router
-
+from app.schedulers.services import scheduler_service
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, 'subdir').
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -50,11 +50,13 @@ app.include_router(router)
 @app.on_event('startup')
 async def startup():
     await get_db().connect()
+    await scheduler_service.start()
 
 
 @app.on_event('shutdown')
 async def shutdown():
     await get_db().disconnect()
+    await scheduler_service.shutdown()
 
 
 def main():
