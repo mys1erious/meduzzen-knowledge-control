@@ -1,10 +1,9 @@
-# Meduzzen Internship - Knowledge Control
+# Meduzzen Internship - Knowledge Control App
 
-# Deployed:
+## Deployed:
 http://knowledge-control-api.mys1erious.com/docs
 
-
-# Local:
+## Local:
 **All commands should be executed from the project root**.
 
 ### Run the project:
@@ -18,3 +17,17 @@ http://knowledge-control-api.mys1erious.com/docs
 
 ### Run migrations:
 - `docker compose exec app migrate`
+
+## Stack:
+- Backend:
+  - Python
+  - FastAPI
+  - Auth0/JWT
+  - Postgresql
+  - Redis
+  - Docker Compose
+  - Pytest
+- Frontend:
+  - NOT IMPLEMENTED(YET?)
+- Deployment AWS:
+  - EC2, RDS, ElasticCache
