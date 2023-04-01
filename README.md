@@ -1,5 +1,10 @@
-# meduzzen-knowledge-control
+# Meduzzen Internship - Knowledge Control
 
+# Deployed:
+http://knowledge-control-api.mys1erious.com/docs
+
+
+# Local:
 **All commands should be executed from the project root**.
 
 ### Run the project:
