@@ -1,6 +1,7 @@
 # Meduzzen Internship - Knowledge Control App
 
 ## Deployed:
+!!! (instance is deleted, doesnt work right now)
 http://knowledge-control-api.mys1erious.com/docs
 
 ## Local:
