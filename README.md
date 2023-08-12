@@ -28,7 +28,5 @@ http://knowledge-control-api.mys1erious.com/docs
   - Redis
   - Docker Compose
   - Pytest
-- Frontend:
-  - NOT IMPLEMENTED(YET?)
 - Deployment AWS:
   - EC2, RDS, ElasticCache
